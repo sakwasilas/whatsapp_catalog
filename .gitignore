@@ -8,3 +8,11 @@ uploads/products/*
 uploads/profiles/*
 !uploads/products/.gitkeep
 !uploads/profiles/.gitkeep
+
+# Local environment and deployment secrets
+.env.*
+!.env.example
+ca.pem
+env/
+.venv/
+.git/

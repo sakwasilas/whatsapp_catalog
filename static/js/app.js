@@ -4,6 +4,32 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
+  // Seller mobile menu: all workspace links remain reachable on small screens.
+  var mobileMenu = $("#sellerMobileMenu");
+  var menuToggles = $$('[data-mobile-menu-toggle]');
+  if (mobileMenu && menuToggles.length) {
+    var setMenuOpen = function (open) {
+      mobileMenu.hidden = !open;
+      menuToggles.forEach(function (btn) {
+        btn.setAttribute("aria-expanded", open ? "true" : "false");
+        var icon = $("[data-menu-icon]", btn);
+        if (icon) icon.className = open ? "bi bi-x-lg fs-5" : "bi bi-list fs-5";
+        btn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+      });
+    };
+    menuToggles.forEach(function (btn) {
+      btn.addEventListener("click", function () { setMenuOpen(mobileMenu.hidden); });
+    });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !mobileMenu.hidden) setMenuOpen(false); });
+    document.addEventListener("click", function (e) {
+      if (mobileMenu.hidden) return;
+      if (!mobileMenu.contains(e.target) && !menuToggles.some(function (btn) { return btn.contains(e.target); })) setMenuOpen(false);
+    });
+    mobileMenu.addEventListener("click", function (e) {
+      if (e.target.closest("a")) setMenuOpen(false);
+    });
+  }
+
   // Confirm dialogs: <form data-confirm="Are you sure?">
   document.addEventListener("submit", function (e) {
     var msg = e.target.getAttribute && e.target.getAttribute("data-confirm");

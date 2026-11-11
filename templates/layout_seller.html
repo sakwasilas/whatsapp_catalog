@@ -27,10 +27,22 @@
   <div class="shell-main">
     <div class="topbar">
       <a class="brand" href="{{ url_for('seller.dashboard') }}"><span class="brand-mark"><i class="bi bi-whatsapp"></i></span>Catalog<span class="text-wa">Maker</span></a>
-      <div class="d-flex gap-2">
+      <div class="d-flex gap-2 align-items-center">
         {% if nav_business %}<a class="btn btn-soft btn-sm" href="{{ url_for('public.shop', slug=nav_business.slug) }}" target="_blank" rel="noopener"><i class="bi bi-eye"></i> Catalog</a>{% endif %}
-        <form method="post" action="{{ url_for('auth.logout') }}">{{ csrf() }}<button class="btn btn-outline-secondary btn-sm" aria-label="Log out"><i class="bi bi-box-arrow-right"></i></button></form>
+        <button class="btn btn-outline-secondary btn-sm mobile-menu-toggle" type="button" aria-expanded="false" aria-controls="sellerMobileMenu" aria-label="Open menu" data-mobile-menu-toggle>
+          <i class="bi bi-list fs-5" data-menu-icon></i><span class="d-none d-sm-inline ms-1">Menu</span>
+        </button>
       </div>
+    </div>
+    <div class="mobile-menu-panel" id="sellerMobileMenu" hidden>
+      <div class="mobile-menu-heading">Your workspace</div>
+      <a href="{{ url_for('seller.business_profile') }}" class="mobile-menu-link {{ 'active' if request.endpoint == 'seller.business_profile' }}"><i class="bi bi-shop"></i><span>My business</span></a>
+      <a href="{{ url_for('seller.analytics') }}" class="mobile-menu-link {{ 'active' if request.endpoint == 'seller.analytics' }}"><i class="bi bi-bar-chart-line"></i><span>Analytics</span></a>
+      <a href="{{ url_for('seller.subscription') }}" class="mobile-menu-link {{ 'active' if request.endpoint == 'seller.subscription' }}"><i class="bi bi-stars"></i><span>Plan &amp; billing</span></a>
+      <a href="{{ url_for('seller.account') }}" class="mobile-menu-link {{ 'active' if request.endpoint == 'seller.account' }}"><i class="bi bi-person-gear"></i><span>Account settings</span></a>
+      {% if nav_business %}<a href="{{ url_for('public.shop', slug=nav_business.slug) }}" target="_blank" rel="noopener" class="mobile-menu-link"><i class="bi bi-box-arrow-up-right"></i><span>View my catalog</span></a>{% endif %}
+      <div class="mobile-menu-user"><i class="bi bi-person-circle"></i><span>{{ current_user.full_name }}</span></div>
+      <form method="post" action="{{ url_for('auth.logout') }}">{{ csrf() }}<button class="mobile-menu-logout" type="submit"><i class="bi bi-box-arrow-right"></i> Log out</button></form>
     </div>
     <div class="page" id="page">
       {{ flashes() }}
@@ -49,8 +61,7 @@
   <a href="{{ url_for('seller.dashboard') }}" class="{{ 'active' if request.endpoint == 'seller.dashboard' }}"><i class="bi bi-speedometer2"></i>Home</a>
   <a href="{{ url_for('seller.products') }}" class="{{ 'active' if request.endpoint in ['seller.products','seller.add_product','seller.edit_product'] }}"><i class="bi bi-box-seam"></i>Products</a>
   <a href="{{ url_for('seller.orders') }}" class="{{ 'active' if request.endpoint in ['seller.orders','seller.new_order','seller.edit_order'] }}"><i class="bi bi-receipt"></i>Orders</a>
-  <a href="{{ url_for('seller.analytics') }}" class="{{ 'active' if request.endpoint == 'seller.analytics' }}"><i class="bi bi-bar-chart-line"></i>Stats</a>
-  <a href="{{ url_for('seller.subscription') }}" class="{{ 'active' if request.endpoint == 'seller.subscription' }}"><i class="bi bi-stars"></i>Plan</a>
-  <a href="{{ url_for('seller.account') }}" class="{{ 'active' if request.endpoint in ['seller.account','seller.business_profile'] }}"><i class="bi bi-person-circle"></i>Me</a>
+  <a href="{{ url_for('seller.account') }}" class="{{ 'active' if request.endpoint == 'seller.account' }}"><i class="bi bi-person-circle"></i>Account</a>
+  <button type="button" class="bottom-more {{ 'active' if request.endpoint in ['seller.analytics','seller.business_profile','seller.subscription'] }}" data-mobile-menu-toggle aria-expanded="false" aria-controls="sellerMobileMenu"><i class="bi bi-grid"></i>More</button>
 </nav>
 {% endblock %}
