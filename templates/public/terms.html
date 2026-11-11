@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Terms of Service - {{ PLATFORM_NAME }}{% endblock %}
+{% block content %}
+<article class="container py-5" style="max-width:780px">
+  <h1>Terms of Service</h1><p class="text-muted">Last updated {{ current_year }}. This is a plain-language summary; have it reviewed by a lawyer before launch.</p>
+  <h2 class="h5 mt-4">1. The service</h2><p>{{ PLATFORM_NAME }} lets businesses publish a product catalog and receive customer enquiries on WhatsApp. We do not sell products, handle customer payments for goods, or take part in transactions between sellers and their customers.</p>
+  <h2 class="h5 mt-4">2. Your account</h2><p>You are responsible for the accuracy of your information, for keeping your password private, and for everything done through your account. You must be 18 or older, or have a guardian's permission.</p>
+  <h2 class="h5 mt-4">3. What you may list</h2><p>You may only list lawful goods and services that you have the right to sell, using photos you have the right to use. Illegal, counterfeit, adult or harmful items are not allowed. We may suspend catalogs that break these rules.</p>
+  <h2 class="h5 mt-4">4. Plans and payment</h2><p>The Free plan allows {{ FREE_LIMIT }} products. Premium costs KSh {{ PREMIUM_PRICE }} for {{ PREMIUM_DAYS }} days, paid by M-Pesa and activated after we verify your transaction code. Premium payments are not refundable once activated, unless required by law.</p>
+  <h2 class="h5 mt-4">5. Availability</h2><p>We work hard to keep the service running but cannot promise it will always be available or error-free.</p>
+  <h2 class="h5 mt-4">6. Ending your account</h2><p>You can delete your account at any time from the Account page. We may suspend accounts that break these terms.</p>
+</article>
+{% endblock %}

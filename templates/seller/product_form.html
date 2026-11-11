@@ -1,0 +1,37 @@
+{% extends "layout_seller.html" %}
+{% from "_macros.html" import csrf %}
+{% set editing = product is not none %}
+{% block title %}{{ 'Edit product' if editing else 'Add product' }} - {{ PLATFORM_NAME }}{% endblock %}
+{% block page %}
+<div class="page-head"><div><h1>{{ 'Edit product' if editing else 'Add product' }}</h1>
+  {% if not editing and not stats.is_premium %}<p class="sub">{{ stats.remaining }} free slot{{ '' if stats.remaining == 1 else 's' }} left</p>{% endif %}</div><a class="btn btn-outline-secondary" href="{{ url_for('seller.products') }}">Back</a></div>
+{% if not editing and not stats.can_add %}
+<div class="card-soft empty"><i class="bi bi-stars"></i><h2 class="h5">You have used all {{ stats.limit }} free products</h2><p>Upgrade for KSh {{ PREMIUM_PRICE }} to add unlimited products for {{ PREMIUM_DAYS }} days.</p><a class="btn btn-wa" href="{{ url_for('seller.subscription') }}">See Premium</a></div>
+{% else %}
+<form method="post" enctype="multipart/form-data" novalidate>
+  {{ csrf() }}
+  <div class="row g-3">
+    <div class="col-lg-8"><div class="card-soft card-body-p"><div class="row g-3">
+      <div class="col-12"><label class="form-label" for="product_name">Product name</label><input class="form-control" id="product_name" name="product_name" value="{{ form.product_name or '' }}" maxlength="150" required autofocus></div>
+      <div class="col-md-6"><label class="form-label" for="price">Price (KSh)</label><input class="form-control" id="price" name="price" inputmode="decimal" value="{{ form.price or '' }}" placeholder="1500" required></div>
+      <div class="col-md-6"><label class="form-label" for="compare_price">Old price <span class="text-muted fw-normal">(optional, shows a discount)</span></label><input class="form-control" id="compare_price" name="compare_price" inputmode="decimal" value="{{ form.compare_price or '' }}" placeholder="2000"></div>
+      <div class="col-md-6"><label class="form-label" for="category">Category</label><input class="form-control" id="category" name="category" list="cats" value="{{ form.category or '' }}" maxlength="80" placeholder="Pick or type your own"><datalist id="cats">{% for c in suggestions %}<option value="{{ c }}">{% endfor %}</datalist></div>
+      <div class="col-md-6 d-flex flex-column justify-content-end"><div class="form-check form-switch mb-1"><input class="form-check-input" type="checkbox" role="switch" id="is_available" name="is_available" {{ 'checked' if form.is_available }}><label class="form-check-label" for="is_available">In stock</label></div>
+        <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="is_featured" name="is_featured" {{ 'checked' if form.is_featured }}><label class="form-check-label" for="is_featured">Show as a top pick</label></div></div>
+      <div class="col-12"><label class="form-label" for="description">Description</label><textarea class="form-control" id="description" name="description" rows="4" maxlength="2000" data-counter="#dc" placeholder="Size, colour, material, delivery...">{{ form.description or '' }}</textarea><div class="form-text text-end" id="dc"></div></div>
+    </div></div></div>
+    <div class="col-lg-4"><div class="card-soft card-body-p">
+      <label class="form-label">Photo</label>
+      <div class="mb-2">
+        <img id="imgPreview" class="upload-preview {{ '' if editing and product.image else 'd-none' }}" src="{{ upload_url(product.image) if editing and product.image else '' }}" alt="Product photo preview">
+        <div id="imgPh" class="upload-preview {{ 'd-none' if editing and product.image else 'd-grid' }}" style="place-items:center;color:var(--wa-dark);font-size:2rem"><i class="bi bi-image"></i></div>
+      </div>
+      <input class="form-control form-control-sm" type="file" name="image" accept=".jpg,.jpeg,.png,.webp" data-preview="#imgPreview" data-placeholder="#imgPh">
+      <div class="form-text">Square photos look best. JPG, PNG or WEBP, up to 4 MB. We resize it for you.</div>
+      {% if editing and product.image %}<div class="form-check mt-2"><input class="form-check-input" type="checkbox" name="remove_image" id="remove_image"><label class="form-check-label small" for="remove_image">Remove current photo</label></div>{% endif %}
+    </div></div>
+  </div>
+  <div class="mt-3 d-flex gap-2"><button class="btn btn-wa btn-lg" type="submit" data-busy="Saving...">{{ 'Save changes' if editing else 'Add product' }}</button><a class="btn btn-outline-secondary btn-lg" href="{{ url_for('seller.products') }}">Cancel</a></div>
+</form>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "layout_admin.html" %}
+{% from "_macros.html" import csrf, stat, bars, badge %}
+{% block title %}Admin overview - {{ PLATFORM_NAME }}{% endblock %}
+{% block page %}
+<div class="page-head"><div><h1>Overview</h1><p class="sub">How the platform is doing right now.</p></div>
+  <div class="d-flex gap-2"><a class="btn btn-wa" href="{{ url_for('admin.payments', status='pending') }}"><i class="bi bi-cash-coin"></i> Review payments{% if stats.pending %} ({{ stats.pending }}){% endif %}</a><a class="btn btn-soft" href="{{ url_for('admin.users') }}"><i class="bi bi-people"></i> Sellers</a></div></div>
+
+{% if stats.pending %}<div class="alert alert-warning d-flex align-items-center gap-2"><i class="bi bi-bell-fill"></i><div><strong>{{ stats.pending }} payment{{ '' if stats.pending == 1 else 's' }}</strong> waiting for verification. Sellers are waiting for Premium.</div></div>{% endif %}
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-lg-3">{{ stat('Revenue this month', stats.revenue_month|kes, 'cash-stack', stats.revenue_total|kes ~ ' all time') }}</div>
+  <div class="col-6 col-lg-3">{{ stat('Sellers', stats.sellers, 'people', '+' ~ stats.new_week ~ ' this week') }}</div>
+  <div class="col-6 col-lg-3">{{ stat('Premium', stats.premium, 'stars', stats.conversion ~ '% of sellers · ' ~ stats.free ~ ' free') }}</div>
+  <div class="col-6 col-lg-3">{{ stat('Catalog views (30d)', stats.views_30d, 'eye', stats.products ~ ' products · ' ~ stats.orders ~ ' orders') }}</div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-7"><div class="card-soft h-100"><div class="card-head"><h2>New sellers · last 14 days</h2><span class="small text-muted">{{ stats.unverified }} unverified emails</span></div><div class="card-body-p">{{ bars(signups, 'n', None, ' signups') }}</div></div></div>
+  <div class="col-lg-5"><div class="card-soft h-100"><div class="card-head"><h2>Revenue · last 6 months (KSh)</h2></div><div class="card-body-p">{{ bars(revenue, 'n', None, ' KSh') }}</div></div></div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-7"><div class="card-soft h-100"><div class="card-head"><h2>Pending payments</h2><a class="small" href="{{ url_for('admin.payments', status='pending') }}">View all</a></div>
+    {% if pending %}<div class="table-responsive"><table class="table table-clean align-middle"><thead><tr><th>Seller</th><th>Code</th><th>Account</th><th class="text-end">Action</th></tr></thead><tbody>
+      {% for p, b, u in pending %}<tr><td><a class="fw-semibold text-decoration-none" href="{{ url_for('admin.user_detail', user_id=u.id) }}">{{ b.business_name }}</a><div class="small text-muted">{{ u.full_name }} · {{ p.created_at|timeago }}</div></td><td><code>{{ p.transaction_reference }}</code></td><td>CAT{{ b.id }}</td>
+        <td class="text-end text-nowrap"><form class="d-inline" method="post" action="{{ url_for('admin.approve_payment', payment_id=p.id) }}" data-confirm="Approve {{ p.transaction_reference }} and activate Premium? Only do this after confirming the code in your M-Pesa statement.">{{ csrf() }}<button class="btn btn-sm btn-wa">Approve</button></form>
+          <button class="btn btn-sm btn-outline-danger" type="button" data-bs-toggle="modal" data-bs-target="#rejectModal" data-reject-action="{{ url_for('admin.reject_payment', payment_id=p.id) }}" data-label="{{ p.transaction_reference }} - {{ b.business_name }}">Reject</button></td></tr>{% endfor %}</tbody></table></div>
+    {% else %}<div class="empty py-4"><i class="bi bi-check2-circle"></i>All caught up.</div>{% endif %}</div></div>
+  <div class="col-lg-5"><div class="card-soft h-100"><div class="card-head"><h2>Premium expiring in 7 days</h2></div>
+    {% if expiring %}<div class="card-body-p pt-2">{% for s, b, u in expiring %}<div class="d-flex justify-content-between align-items-center py-2 {{ 'border-top' if not loop.first }}"><div><a class="fw-semibold text-decoration-none" href="{{ url_for('admin.user_detail', user_id=u.id) }}">{{ b.business_name }}</a><div class="small text-muted">{{ u.phone or u.email }}</div></div><span class="small fw-semibold text-danger">{{ s.expiry_date|fmt_date }}</span></div>{% endfor %}</div>
+    {% else %}<div class="empty py-4"><i class="bi bi-calendar-check"></i>Nothing expiring soon.</div>{% endif %}</div></div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-4"><div class="card-soft h-100"><div class="card-head"><h2>Newest sellers</h2></div><div class="card-body-p pt-2">{% for u in recent_users %}<div class="d-flex justify-content-between py-2 {{ 'border-top' if not loop.first }}"><a class="text-decoration-none text-truncate" href="{{ url_for('admin.user_detail', user_id=u.id) }}">{{ u.full_name }}</a><span class="small text-muted ms-2 text-nowrap">{{ u.created_at|timeago }}</span></div>{% else %}<div class="text-muted small">No sellers yet.</div>{% endfor %}</div></div></div>
+  <div class="col-lg-4"><div class="card-soft h-100"><div class="card-head"><h2>Top catalogs · 30 days</h2></div><div class="card-body-p pt-2">{% for b, n in top %}<div class="d-flex justify-content-between py-2 {{ 'border-top' if not loop.first }}"><a class="text-decoration-none text-truncate" href="{{ url_for('public.shop', slug=b.slug) }}" target="_blank" rel="noopener">{{ b.business_name }}</a><span class="small fw-semibold ms-2">{{ n }} views</span></div>{% else %}<div class="text-muted small">No traffic yet.</div>{% endfor %}</div></div></div>
+  <div class="col-lg-4"><div class="card-soft h-100"><div class="card-head"><h2>Recent activity</h2><a class="small" href="{{ url_for('admin.activity') }}">All</a></div><div class="card-body-p pt-2">{% for l in logs %}<div class="py-2 {{ 'border-top' if not loop.first }}"><div class="small">{{ l.description|truncate(90) }}</div><div class="small text-muted">{{ l.created_at|timeago }}</div></div>{% else %}<div class="text-muted small">Nothing yet.</div>{% endfor %}</div></div></div>
+</div>
+{% include "admin/_reject_modal.html" %}
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "layout_seller.html" %}
+{% from "_macros.html" import csrf %}
+{% block title %}My business - {{ PLATFORM_NAME }}{% endblock %}
+{% block page %}
+<div class="page-head"><div><h1>{{ 'My business' if business else 'Set up your business' }}</h1><p class="sub">This is what customers see at the top of your catalog.</p></div>
+  {% if business %}<a class="btn btn-soft" href="{{ url_for('public.shop', slug=business.slug) }}" target="_blank" rel="noopener"><i class="bi bi-eye"></i> Preview</a>{% endif %}</div>
+<form method="post" enctype="multipart/form-data" novalidate>
+  {{ csrf() }}
+  <div class="row g-3">
+    <div class="col-lg-8"><div class="card-soft card-body-p">
+      <div class="row g-3">
+        <div class="col-12"><label class="form-label" for="business_name">Business name</label><input class="form-control" id="business_name" name="business_name" value="{{ form.business_name or '' }}" maxlength="150" required></div>
+        <div class="col-md-6"><label class="form-label" for="whatsapp_number">WhatsApp number</label><input type="tel" class="form-control" id="whatsapp_number" name="whatsapp_number" value="{{ form.whatsapp_number or '' }}" placeholder="0712 345 678" required><div class="form-text">Orders will arrive on this number.</div></div>
+        <div class="col-md-6"><label class="form-label" for="business_category">Category</label><select class="form-select" id="business_category" name="business_category" required><option value="">Choose...</option>{% for c in business_categories %}<option value="{{ c }}" {{ 'selected' if form.business_category == c }}>{{ c }}</option>{% endfor %}</select></div>
+        <div class="col-md-6"><label class="form-label" for="location">Location</label><input class="form-control" id="location" name="location" value="{{ form.location or '' }}" maxlength="150" placeholder="e.g. Nairobi, Gikomba"></div>
+        <div class="col-md-6"><label class="form-label" for="instagram">Instagram <span class="text-muted fw-normal">(optional)</span></label><input class="form-control" id="instagram" name="instagram" value="{{ form.instagram or '' }}" maxlength="31" placeholder="@yourshop"></div>
+        <div class="col-12"><label class="form-label" for="description">About your business</label><textarea class="form-control" id="description" name="description" rows="4" maxlength="1000" data-counter="#descCount">{{ form.description or '' }}</textarea><div class="form-text text-end" id="descCount"></div></div>
+      </div>
+    </div></div>
+    <div class="col-lg-4">
+      <div class="card-soft card-body-p mb-3">
+        <label class="form-label">Logo</label>
+        <div class="d-flex gap-3 align-items-center">
+          <img id="logoPreview" class="upload-preview" src="{{ upload_url(business.logo if business else None, url_for('static', filename='images/default-profile.png')) }}" alt="Logo preview">
+          <div><input class="form-control form-control-sm" type="file" name="logo" accept=".jpg,.jpeg,.png,.webp" data-preview="#logoPreview"><div class="form-text">JPG, PNG or WEBP, up to 4 MB.</div>
+            {% if business and business.logo %}<div class="form-check mt-2"><input class="form-check-input" type="checkbox" name="remove_logo" id="remove_logo"><label class="form-check-label small" for="remove_logo">Remove current logo</label></div>{% endif %}</div>
+        </div>
+      </div>
+      <div class="card-soft card-body-p">
+        <label class="form-label d-flex justify-content-between">Catalog colour {% if not is_premium %}<span class="badge badge-status st-premium"><i class="bi bi-lock-fill"></i> Premium</span>{% endif %}</label>
+        <div class="swatches">{% for key, hex in THEME_COLORS.items() %}<span><input type="radio" name="theme" id="th_{{ key }}" value="{{ key }}" {{ 'checked' if (form.theme or 'green') == key }} {{ 'disabled' if not is_premium and key != 'green' }}><label for="th_{{ key }}" style="background:{{ hex }}" title="{{ key|capitalize }}"></label></span>{% endfor %}</div>
+        {% if not is_premium %}<div class="form-text mt-2">Upgrade to Premium to match your brand colours. <a href="{{ url_for('seller.subscription') }}">See plans</a></div>{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="mt-3 d-flex gap-2"><button class="btn btn-wa btn-lg" type="submit" data-busy="Saving...">Save business</button>{% if business %}<a class="btn btn-outline-secondary btn-lg" href="{{ url_for('seller.dashboard') }}">Cancel</a>{% endif %}</div>
+</form>
+{% endblock %}

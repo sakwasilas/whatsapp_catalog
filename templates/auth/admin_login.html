@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf, pw_input, flashes %}
+{% block title %}Admin login - {{ PLATFORM_NAME }}{% endblock %}
+{% block navbar %}{% endblock %}
+{% block flashes %}{% endblock %}
+{% block content %}
+<div class="auth-wrap"><div class="card-soft auth-card">
+  <div class="brand mb-3"><span class="brand-mark"><i class="bi bi-shield-lock"></i></span>Admin sign in</div>
+  {{ flashes() }}
+  <form method="post" action="{{ url_for('auth.admin_login') }}" novalidate>
+    {{ csrf() }}
+    <div class="mb-3"><label class="form-label" for="email">Admin email</label><input type="email" class="form-control" id="email" name="email" value="{{ form.email or '' }}" autocomplete="username" required autofocus></div>
+    <div class="mb-2">{{ pw_input('password', 'Password') }}</div>
+    <div class="text-end mb-3"><a class="small" href="{{ url_for('auth.forgot_password') }}">Forgot password?</a></div>
+    <button class="btn btn-wa w-100 btn-lg" type="submit">Sign in</button>
+  </form>
+</div></div>
+{% endblock %}
+{% block footer %}{% endblock %}

@@ -1,0 +1,11 @@
+{% if stats.is_premium %}
+  <div class="mb-2">Premium active until <strong>{{ stats.expiry|fmt_date }}</strong> <span class="text-muted">({{ stats.days_left }} days left)</span></div>
+  <ul class="small text-muted ps-3 mb-3"><li>Unlimited products</li><li>90-day analytics &amp; top products</li><li>Custom colour &amp; no branding</li></ul>
+  <a class="btn btn-outline-wa btn-sm" href="{{ url_for('seller.subscription') }}">Extend Premium</a>
+{% else %}
+  <div class="d-flex justify-content-between small mb-1"><span>Products used</span><strong>{{ stats.used }} / {{ stats.limit }}</strong></div>
+  <div class="progress mb-3"><div class="progress-bar" style="width:{{ stats.percent }}%"></div></div>
+  {% if stats.hidden %}<div class="alert alert-warning py-2 small">{{ stats.hidden }} product{{ '' if stats.hidden == 1 else 's' }} hidden from customers.</div>{% endif %}
+  <p class="small text-muted">Go Premium for KSh {{ PREMIUM_PRICE }}/{{ PREMIUM_DAYS }} days: unlimited products, 90-day analytics, your own colour, no branding.</p>
+  <a class="btn btn-wa btn-sm" href="{{ url_for('seller.subscription') }}"><i class="bi bi-stars"></i> Upgrade</a>
+{% endif %}

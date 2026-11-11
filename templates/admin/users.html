@@ -1,0 +1,24 @@
+{% extends "layout_admin.html" %}
+{% from "_macros.html" import csrf, badge, pager %}
+{% block title %}Sellers - {{ PLATFORM_NAME }}{% endblock %}
+{% block page %}
+<div class="page-head"><div><h1>Sellers</h1><p class="sub">{{ page.total }} match{{ '' if page.total == 1 else 'es' }}</p></div></div>
+<div class="card-soft mb-3 card-body-p py-3"><form method="get" class="row g-2 align-items-center">
+  <div class="col-12 col-md"><div class="input-icon"><i class="bi bi-search"></i><input class="form-control" type="search" name="q" value="{{ q }}" placeholder="Search name, email, phone or business" aria-label="Search sellers"></div></div>
+  <div class="col-7 col-md-auto"><select class="form-select" name="filter" aria-label="Filter">{% for v, l in [('', 'All sellers'), ('premium','Premium'), ('free','Free'), ('suspended','Suspended'), ('unverified','Email not confirmed'), ('nobusiness','No business yet')] %}<option value="{{ v }}" {{ 'selected' if flt == v }}>{{ l }}</option>{% endfor %}</select></div>
+  <div class="col-5 col-md-auto"><button class="btn btn-wa w-100">Search</button></div></form></div>
+<div class="card-soft">
+  {% if rows %}<div class="table-responsive"><table class="table table-clean align-middle"><thead><tr><th>Seller</th><th>Business</th><th class="d-none d-lg-table-cell">Products</th><th>Plan</th><th class="d-none d-md-table-cell">Joined</th><th class="text-end"></th></tr></thead><tbody>
+  {% for r in rows %}{% set u = r.user %}
+  <tr class="{{ 'opacity-75' if not u.is_active }}">
+    <td><a class="fw-semibold text-decoration-none" href="{{ url_for('admin.user_detail', user_id=u.id) }}">{{ u.full_name }}</a>{% if not u.is_active %} {{ badge('suspended') }}{% endif %}<div class="small text-muted">{{ u.email }}{% if not u.email_verified %} <i class="bi bi-exclamation-circle text-warning" title="Email not confirmed"></i>{% endif %}</div><div class="small text-muted">+{{ u.phone }}</div></td>
+    <td>{% if r.business %}<a href="{{ url_for('public.shop', slug=r.business.slug) }}" target="_blank" rel="noopener" class="text-decoration-none">{{ r.business.business_name }}</a><div class="small text-muted">CAT{{ r.business.id }}</div>{% else %}<span class="text-muted">-</span>{% endif %}</td>
+    <td class="d-none d-lg-table-cell">{{ r.products }}</td>
+    <td>{% if r.is_premium %}{{ badge('premium') }}<div class="small text-muted">to {{ r.expiry|fmt_date }}</div>{% else %}{{ badge('free') }}{% endif %}</td>
+    <td class="d-none d-md-table-cell small text-muted">{{ u.created_at|fmt_date }}<div>seen {{ u.last_login_at|timeago }}</div></td>
+    <td class="text-end text-nowrap"><a class="btn btn-sm btn-outline-wa" href="{{ url_for('admin.user_detail', user_id=u.id) }}">Manage</a></td></tr>
+  {% endfor %}</tbody></table></div>
+  {% else %}<div class="empty"><i class="bi bi-people"></i>No sellers match.</div>{% endif %}
+</div>
+{{ pager(page) }}
+{% endblock %}

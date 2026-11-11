@@ -1,0 +1,27 @@
+{% extends "layout_admin.html" %}
+{% from "_macros.html" import csrf, badge, pager %}
+{% block title %}Payments - {{ PLATFORM_NAME }}{% endblock %}
+{% block page %}
+<div class="page-head"><div><h1>Payments</h1><p class="sub">Match each M-Pesa code against your statement before approving.</p></div>
+  <a class="btn btn-outline-wa" href="{{ url_for('admin.export_payments', status=status, q=q) }}"><i class="bi bi-download"></i> Export CSV</a></div>
+<div class="card-soft">
+  <div class="card-head flex-wrap">
+    <div class="btn-group btn-group-sm flex-wrap" role="group" aria-label="Filter">
+      <a class="btn {{ 'btn-wa' if not status else 'btn-outline-wa' }}" href="{{ url_for('admin.payments', q=q) }}">All</a>
+      {% for s in ['pending','approved','rejected'] %}<a class="btn {{ 'btn-wa' if status == s else 'btn-outline-wa' }}" href="{{ url_for('admin.payments', status=s, q=q) }}">{{ s|capitalize }}</a>{% endfor %}</div>
+    <form method="get" class="flex-grow-1" style="max-width:300px">{% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}<div class="input-icon"><i class="bi bi-search"></i><input class="form-control form-control-sm" type="search" name="q" value="{{ q }}" placeholder="Code, business, seller, phone" aria-label="Search payments"></div></form></div>
+  {% if page.items %}<div class="table-responsive"><table class="table table-clean align-middle"><thead><tr><th>Submitted</th><th>Business</th><th>Account</th><th>M-Pesa code</th><th>Amount</th><th>Status</th><th class="text-end">Action</th></tr></thead><tbody>
+    {% for p, b, u in page.items %}<tr>
+      <td class="small">{{ p.created_at|fmt_dt }}</td>
+      <td><a class="fw-semibold text-decoration-none" href="{{ url_for('admin.user_detail', user_id=u.id) }}">{{ b.business_name }}</a><div class="small text-muted">{{ u.full_name }} · +{{ u.phone }}</div></td>
+      <td><code>CAT{{ b.id }}</code></td><td><code>{{ p.transaction_reference }}</code></td><td>{{ p.amount|kes }}</td>
+      <td>{{ badge(p.status) }}{% if p.note %}<div class="small text-muted">{{ p.note|truncate(40) }}</div>{% endif %}</td>
+      <td class="text-end text-nowrap">{% if p.status == 'pending' %}
+        <form class="d-inline" method="post" action="{{ url_for('admin.approve_payment', payment_id=p.id) }}" data-confirm="Approve {{ p.transaction_reference }} and activate Premium? Only do this after confirming the code in your M-Pesa statement.">{{ csrf() }}<button class="btn btn-sm btn-wa">Approve</button></form>
+        <button class="btn btn-sm btn-outline-danger" type="button" data-bs-toggle="modal" data-bs-target="#rejectModal" data-reject-action="{{ url_for('admin.reject_payment', payment_id=p.id) }}" data-label="{{ p.transaction_reference }} - {{ b.business_name }}">Reject</button>
+      {% else %}<span class="small text-muted">{{ p.payment_date|fmt_date if p.payment_date else '' }}</span>{% endif %}</td></tr>{% endfor %}
+  </tbody></table></div>{% else %}<div class="empty"><i class="bi bi-cash-coin"></i>No payments found.</div>{% endif %}
+</div>
+{{ pager(page) }}
+{% include "admin/_reject_modal.html" %}
+{% endblock %}

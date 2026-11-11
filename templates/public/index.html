@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}{{ PLATFORM_NAME }} - Your shop on WhatsApp in 5 minutes{% endblock %}
+{% block meta %}
+<meta name="description" content="Create a beautiful product catalog, share one link, and get orders straight to your WhatsApp. Free for up to {{ FREE_LIMIT }} products. Built for small businesses in Kenya.">
+<meta property="og:title" content="{{ PLATFORM_NAME }}"><meta property="og:description" content="Your shop on WhatsApp in 5 minutes. Free to start.">
+{% endblock %}
+{% block flashes %}{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="container py-5">
+    <div class="row align-items-center g-5 py-lg-4">
+      <div class="col-lg-7">
+        <div class="d-flex flex-wrap gap-2 mb-3"><span class="chip"><i class="bi bi-lightning-charge-fill"></i> Set up in 5 minutes</span><span class="chip"><i class="bi bi-phone"></i> Made for M-Pesa &amp; WhatsApp</span></div>
+        <h1>Turn your WhatsApp into a real online shop.</h1>
+        <p class="lead mt-3 mb-4">Add your products, share one link, and customers order straight to your WhatsApp. No website, no developer, no monthly headache. Free for your first {{ FREE_LIMIT }} products.</p>
+        <div class="d-flex flex-wrap gap-2">
+          {% if logged_in %}
+          <a class="btn btn-whatsapp btn-lg" href="{{ url_for('admin.dashboard' if current_user.role == 'admin' else 'seller.dashboard') }}">Open my dashboard <i class="bi bi-arrow-right"></i></a>
+          {% else %}
+          <a class="btn btn-whatsapp btn-lg" href="{{ url_for('auth.register') }}"><i class="bi bi-whatsapp"></i> Create my free catalog</a>
+          <a class="btn btn-lg btn-outline-light" href="#how-it-works">See how it works</a>
+          {% endif %}
+        </div>
+        <ul class="list-inline mt-4 mb-0 small" style="color:rgba(255,255,255,.8)">
+          <li class="list-inline-item me-3"><i class="bi bi-check2-circle"></i> No credit card</li>
+          <li class="list-inline-item me-3"><i class="bi bi-check2-circle"></i> Works on any phone</li>
+          <li class="list-inline-item"><i class="bi bi-check2-circle"></i> Premium is just KSh {{ PREMIUM_PRICE }}/month</li>
+        </ul>
+      </div>
+      <div class="col-lg-5 d-none d-md-block" aria-hidden="true">
+        <div class="phone"><div class="phone-screen">
+          <div class="phone-top"><div class="logo"><i class="bi bi-shop"></i></div><b>Amani Boutique</b><div class="small opacity-75">Nairobi &middot; Fashion</div></div>
+          <div class="phone-grid">
+            <div class="phone-item"><div class="img" style="background:linear-gradient(135deg,#fbd3e9,#bb377d)"></div>Kitenge Dress<b>KSh 2,500</b></div>
+            <div class="phone-item"><div class="img" style="background:linear-gradient(135deg,#d3f9d8,#2f9e44)"></div>Sandals<b>KSh 1,200</b></div>
+            <div class="phone-item"><div class="img" style="background:linear-gradient(135deg,#ffe8cc,#e8590c)"></div>Handbag<b>KSh 3,800</b></div>
+            <div class="phone-item"><div class="img" style="background:linear-gradient(135deg,#d0ebff,#1971c2)"></div>Denim Jacket<b>KSh 2,900</b></div>
+          </div>
+          <div class="phone-btn"><i class="bi bi-whatsapp"></i> Order on WhatsApp</div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="how-it-works">
+  <div class="container">
+    <div class="text-center mb-5"><div class="eyebrow">How it works</div><h2 class="section-title">From phone photos to orders in three steps</h2></div>
+    <div class="row g-4">
+      <div class="col-md-4"><div class="card-soft step-card"><div class="step-num">1</div><h3 class="h5">Create your shop</h3><p class="text-muted mb-0">Sign up with your phone number, add your business name, logo and WhatsApp number.</p></div></div>
+      <div class="col-md-4"><div class="card-soft step-card"><div class="step-num">2</div><h3 class="h5">Add your products</h3><p class="text-muted mb-0">Snap a photo, type a name and a price. Photos are resized automatically so your catalog loads fast on mobile data.</p></div></div>
+      <div class="col-md-4"><div class="card-soft step-card"><div class="step-num">3</div><h3 class="h5">Share &amp; get orders</h3><p class="text-muted mb-0">Post your link or QR code on your Status, groups and Instagram. Customers tap and a pre-filled order lands in your WhatsApp.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section pt-0" id="features">
+  <div class="container">
+    <div class="text-center mb-5"><div class="eyebrow">Features</div><h2 class="section-title">Everything a small shop needs. Nothing it doesn't.</h2></div>
+    <div class="row g-4">
+      {% for icon, title, text in [
+        ('link-45deg','One link for everything','A clean catalog page at your own address that you can share anywhere. Looks great on every phone.'),
+        ('whatsapp','Orders in WhatsApp','Each product has an Order button with the product name and price already typed for the customer.'),
+        ('search','Search & categories','Customers find what they want fast with instant search, category filters and price sorting.'),
+        ('qr-code','QR code & sharing','Download a ready-made QR code for your shop door, flyers and receipts, or share to WhatsApp in one tap.'),
+        ('receipt','Order tracking','Keep every order in one place: new, confirmed, delivered. See who ordered what and how much you made.'),
+        ('graph-up-arrow','Visitor analytics','See how many people view your catalog, which products they open, and how many tap Order.')] %}
+      <div class="col-md-6 col-lg-4"><div class="card-soft feature-card"><div class="feature-icon"><i class="bi bi-{{ icon }}"></i></div><h3 class="h5">{{ title }}</h3><p class="text-muted mb-0">{{ text }}</p></div></div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section pt-0" id="pricing">
+  <div class="container">
+    <div class="text-center mb-5"><div class="eyebrow">Pricing</div><h2 class="section-title">Simple pricing. Pay with M-Pesa.</h2><p class="text-muted">Start free. Upgrade only when your shop grows.</p></div>
+    <div class="row g-4 justify-content-center">
+      <div class="col-md-6 col-lg-5"><div class="card-soft price-card">
+        <h3 class="h5">Free</h3><div class="price-tag">KSh 0</div><div class="text-muted">forever</div>
+        <ul class="price-list">
+          <li><i class="bi bi-check-circle-fill"></i> Up to {{ FREE_LIMIT }} products</li>
+          <li><i class="bi bi-check-circle-fill"></i> Shareable catalog link &amp; QR code</li>
+          <li><i class="bi bi-check-circle-fill"></i> WhatsApp order buttons</li>
+          <li><i class="bi bi-check-circle-fill"></i> Order tracking</li>
+          <li><i class="bi bi-check-circle-fill"></i> 7-day visitor stats</li>
+          <li class="no"><i class="bi bi-dash-circle"></i> Platform branding on your catalog</li>
+        </ul>
+        <a class="btn btn-outline-wa w-100" href="{{ url_for('auth.register') }}">Start free</a>
+      </div></div>
+      <div class="col-md-6 col-lg-5"><div class="card-soft price-card featured"><span class="ribbon">Most popular</span>
+        <h3 class="h5">Premium</h3><div class="price-tag">KSh {{ PREMIUM_PRICE }}</div><div class="text-muted">per {{ PREMIUM_DAYS }} days</div>
+        <ul class="price-list">
+          <li><i class="bi bi-check-circle-fill"></i> <strong>Unlimited products</strong></li>
+          <li><i class="bi bi-check-circle-fill"></i> 90-day analytics &amp; top products</li>
+          <li><i class="bi bi-check-circle-fill"></i> Custom catalog colour</li>
+          <li><i class="bi bi-check-circle-fill"></i> Remove platform branding</li>
+          <li><i class="bi bi-check-circle-fill"></i> Export orders to Excel / CSV</li>
+          <li><i class="bi bi-check-circle-fill"></i> Pay by M-Pesa, no card needed</li>
+        </ul>
+        <a class="btn btn-wa w-100" href="{{ url_for('auth.register') }}">Go Premium</a>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section pt-0" id="faq">
+  <div class="container" style="max-width:820px">
+    <div class="text-center mb-4"><div class="eyebrow">FAQ</div><h2 class="section-title">Questions we often get</h2></div>
+    <div class="accordion" id="faqList">
+      {% for q, a in [
+        ('Do my customers need an account?','No. They open your link, browse, and tap Order on WhatsApp. That is it.'),
+        ('How do I pay for Premium?','Send KSh '~PREMIUM_PRICE~' by M-Pesa to the Paybill shown on your Plan page, then paste the transaction code. We verify it and activate Premium, usually within a few hours.'),
+        ('What happens if my Premium ends?','Nothing is deleted. Your catalog link keeps working and shows your first '~FREE_LIMIT~' products. Renew and the rest appear again.'),
+        ('Can I use it on my phone only?','Yes. The whole dashboard is built for phones. You can add products, record orders and share your link without a computer.'),
+        ('I forgot my password. What now?','Use "Forgot password" on the login page and we will email you a reset link. If email does not reach you, contact support and we can send a link on WhatsApp.'),
+        ('Is my data safe?','Passwords are hashed, forms are protected against forgery, and you can delete your account and all your data at any time from your Account page.')] %}
+      <div class="accordion-item">
+        <h3 class="accordion-header"><button class="accordion-button {{ '' if loop.first else 'collapsed' }}" type="button" data-bs-toggle="collapse" data-bs-target="#faq{{ loop.index }}" aria-expanded="{{ 'true' if loop.first else 'false' }}">{{ q }}</button></h3>
+        <div id="faq{{ loop.index }}" class="accordion-collapse collapse {{ 'show' if loop.first }}" data-bs-parent="#faqList"><div class="accordion-body text-muted">{{ a }}</div></div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="container pb-4">
+  <div class="cta-band text-center">
+    <h2 class="fw-bold">Ready to sell on WhatsApp the easy way?</h2>
+    <p class="mb-4" style="color:rgba(255,255,255,.85)">Create your catalog in minutes. It is free until you outgrow it.</p>
+    <a class="btn btn-whatsapp btn-lg" href="{{ url_for('auth.register') }}"><i class="bi bi-whatsapp"></i> Create my free catalog</a>
+  </div>
+</section>
+{% endblock %}

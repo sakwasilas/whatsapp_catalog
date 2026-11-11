@@ -1,0 +1,27 @@
+{% extends "layout_seller.html" %}
+{% from "_macros.html" import stat, bars %}
+{% block title %}Analytics - {{ PLATFORM_NAME }}{% endblock %}
+{% block page %}
+<div class="page-head"><div><h1>Analytics</h1><p class="sub">See how customers use your catalog.</p></div>
+  <div class="btn-group" role="group" aria-label="Period">{% for d in [7, 30, 90] %}{% if d in allowed %}<a class="btn btn-sm {{ 'btn-wa' if d == days else 'btn-outline-wa' }}" href="{{ url_for('seller.analytics', days=d) }}">{{ d }} days</a>{% else %}<a class="btn btn-sm btn-outline-secondary" href="{{ url_for('seller.subscription') }}" title="Premium"><i class="bi bi-lock-fill"></i> {{ d }} days</a>{% endif %}{% endfor %}</div></div>
+<div class="row g-3 mb-3">
+  <div class="col-6 col-lg-3">{{ stat('Visitors', data.visitors, 'people', 'unique per day') }}</div>
+  <div class="col-6 col-lg-3">{{ stat('Page views', data.views, 'eye') }}</div>
+  <div class="col-6 col-lg-3">{{ stat('Order taps', data.clicks, 'whatsapp', 'WhatsApp button clicks') }}</div>
+  <div class="col-6 col-lg-3">{{ stat('Tap rate', data.rate ~ '%', 'percent', 'taps ÷ visitors') }}</div>
+</div>
+<div class="card-soft mb-3"><div class="card-head"><h2>Daily traffic</h2><div class="legend"><span><i style="background:var(--wa-tint2)"></i>Views</span><span><i style="background:var(--wa-dark)"></i>Order taps</span></div></div>
+  <div class="card-body-p">{% if data.views or data.clicks %}{{ bars(data.series, 'views', 'clicks', ' ') }}{% else %}<div class="empty"><i class="bi bi-graph-up"></i>No data yet. Share your link and check back.</div>{% endif %}</div></div>
+
+<div class="card-soft {{ 'locked' if not stats.is_premium }}">
+  <div class="card-head"><h2><i class="bi bi-trophy"></i> Top products</h2>{% if not stats.is_premium %}<span class="badge badge-status st-premium">Premium</span>{% endif %}</div>
+  {% if stats.is_premium %}
+    {% if data.top %}<div class="table-responsive"><table class="table table-clean"><thead><tr><th>Product</th><th class="text-end">Views</th><th class="text-end">Order taps</th></tr></thead><tbody>
+      {% for r in data.top %}<tr><td class="fw-semibold">{{ r.product.product_name }}</td><td class="text-end">{{ r.views }}</td><td class="text-end">{{ r.clicks }}</td></tr>{% endfor %}</tbody></table></div>
+    {% else %}<div class="empty"><i class="bi bi-trophy"></i>Product statistics appear once customers open your products.</div>{% endif %}
+  {% else %}
+    <div class="card-body-p" style="min-height:190px"><div class="lock-cover"><div><i class="bi bi-lock-fill fs-2 text-wa"></i><div class="fw-bold mt-1">See which products customers love</div><p class="small text-muted mb-2">Premium shows your top products plus 30 and 90 day trends.</p><a class="btn btn-wa btn-sm" href="{{ url_for('seller.subscription') }}">Upgrade for KSh {{ PREMIUM_PRICE }}</a></div></div></div>
+  {% endif %}
+</div>
+<p class="small text-muted mt-3"><i class="bi bi-shield-check"></i> Statistics are anonymous. Your own visits and bots are not counted. Days use UTC.</p>
+{% endblock %}

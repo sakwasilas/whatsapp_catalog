@@ -1,0 +1,54 @@
+{% macro csrf() %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endmacro %}
+
+{% macro badge(s) %}<span class="badge badge-status st-{{ s }}">{{ s|capitalize }}</span>{% endmacro %}
+
+{% macro stat(label, value, icon, hint='') %}
+<div class="card-soft stat">
+  <div class="d-flex align-items-start"><div class="label">{{ label }}</div><div class="ico"><i class="bi bi-{{ icon }}"></i></div></div>
+  <div class="value">{{ value }}</div>
+  {% if hint %}<div class="hint">{{ hint }}</div>{% endif %}
+</div>
+{% endmacro %}
+
+{# Simple bar chart. rows: list of dicts with label, h (0-100), n; optional h2 for a second bar #}
+{% macro bars(rows, key='n', key2=None, title_word='') %}
+<div class="bars" role="img" aria-label="Bar chart">
+  {% for r in rows %}
+  <div class="col" title="{{ r.label }}: {{ r[key] }}{% if key2 %} / {{ r[key2] }}{% endif %}{{ title_word }}">
+    <div class="stack">
+      <div class="bar {{ 'b1' if key2 else 'single' }}" style="height:{{ [r.h, 2]|max if r[key] else 2 }}%"></div>
+      {% if key2 %}<div class="bar b2" style="height:{{ [r.hc, 2]|max if r[key2] else 2 }}%"></div>{% endif %}
+    </div>
+    <div class="lbl">{% if rows|length <= 14 or loop.index0 % 7 == 0 %}{{ r.label }}{% endif %}</div>
+  </div>
+  {% endfor %}
+</div>
+{% endmacro %}
+
+{% macro pager(page) %}
+{% if page.pages > 1 %}
+<nav class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2" aria-label="Pages">
+  <div class="small text-muted">{{ page.total }} result{{ '' if page.total == 1 else 's' }} &middot; page {{ page.page }} of {{ page.pages }}</div>
+  <ul class="pagination pagination-sm mb-0">
+    <li class="page-item {{ '' if page.has_prev else 'disabled' }}"><a class="page-link" href="{{ page_url(page.page - 1) if page.has_prev else '#' }}">&laquo; Prev</a></li>
+    <li class="page-item {{ '' if page.has_next else 'disabled' }}"><a class="page-link" href="{{ page_url(page.page + 1) if page.has_next else '#' }}">Next &raquo;</a></li>
+  </ul>
+</nav>
+{% endif %}
+{% endmacro %}
+
+{% macro flashes() %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+    <div class="alert alert-{{ category if category in ['success','danger','warning','info'] else 'info' }} alert-dismissible fade show" role="alert">
+      {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endfor %}
+{% endwith %}
+{% endmacro %}
+
+{% macro pw_input(name, label, id=None, autocomplete='current-password') %}
+<label class="form-label" for="{{ id or name }}">{{ label }}</label>
+<div class="pw-wrap"><input type="password" class="form-control" id="{{ id or name }}" name="{{ name }}" autocomplete="{{ autocomplete }}" required>
+<button class="pw-toggle" type="button" data-toggle-password aria-label="Show or hide password"><i class="bi bi-eye"></i></button></div>
+{% endmacro %}

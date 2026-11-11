@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Privacy Policy - {{ PLATFORM_NAME }}{% endblock %}
+{% block content %}
+<article class="container py-5" style="max-width:780px">
+  <h1>Privacy Policy</h1><p class="text-muted">Last updated {{ current_year }}. Have this reviewed against the Kenya Data Protection Act before launch.</p>
+  <h2 class="h5 mt-4">What we collect</h2>
+  <p><strong>Sellers:</strong> name, email, phone number, business details, product photos and descriptions, orders you choose to record, and M-Pesa transaction codes you submit.</p>
+  <p><strong>Catalog visitors:</strong> we count page views and WhatsApp button taps to show sellers simple statistics. We do not store names, phone numbers or IP addresses. A short, daily-changing, one-way hash is used only to count unique visitors, and statistics are deleted after {{ 120 }} days.</p>
+  <h2 class="h5 mt-4">How we use it</h2><p>To run your catalog, verify payments, send account emails (confirmation and password reset), and keep the service secure. We do not sell your data.</p>
+  <h2 class="h5 mt-4">Cookies</h2><p>We use one essential cookie to keep you logged in and protect forms. We do not use advertising cookies.</p>
+  <h2 class="h5 mt-4">Your rights</h2><p>You can edit your details or delete your account and all associated data at any time from the Account page. For other requests, contact support.</p>
+  <h2 class="h5 mt-4">WhatsApp</h2><p>When a customer taps Order, they are sent to WhatsApp, which has its own privacy policy. Messages are between the customer and the seller.</p>
+</article>
+{% endblock %}

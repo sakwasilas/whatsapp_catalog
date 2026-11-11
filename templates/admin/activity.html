@@ -1,0 +1,10 @@
+{% extends "layout_admin.html" %}
+{% from "_macros.html" import pager %}
+{% block title %}Activity log - {{ PLATFORM_NAME }}{% endblock %}
+{% block page %}
+<div class="page-head"><div><h1>Activity log</h1><p class="sub">Every admin action, newest first.</p></div></div>
+<div class="card-soft">{% if page.items %}<div class="table-responsive"><table class="table table-clean"><thead><tr><th>When (EAT)</th><th>Admin</th><th>Action</th><th>Details</th></tr></thead><tbody>
+  {% for l in page.items %}<tr><td class="small text-nowrap">{{ l.created_at|fmt_dt }}</td><td class="small">{{ l.admin.full_name if l.admin else '-' }}</td><td><code>{{ l.action }}</code></td><td class="small">{{ l.description }}</td></tr>{% endfor %}</tbody></table></div>
+  {% else %}<div class="empty"><i class="bi bi-clock-history"></i>No activity yet.</div>{% endif %}</div>
+{{ pager(page) }}
+{% endblock %}

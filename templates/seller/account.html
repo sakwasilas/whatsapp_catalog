@@ -1,0 +1,28 @@
+{% extends "layout_seller.html" %}
+{% from "_macros.html" import csrf, pw_input %}
+{% block title %}Account - {{ PLATFORM_NAME }}{% endblock %}
+{% block page %}
+<div class="page-head"><div><h1>Account</h1><p class="sub">Your login details and security.</p></div></div>
+<div class="row g-3">
+  <div class="col-lg-6"><div class="card-soft mb-3"><div class="card-head"><h2>Your details</h2>{% if current_user.email_verified %}<span class="badge badge-status st-active"><i class="bi bi-patch-check"></i> Email confirmed</span>{% else %}<span class="badge badge-status st-pending">Email not confirmed</span>{% endif %}</div>
+    <form method="post" class="card-body-p" novalidate>{{ csrf() }}<input type="hidden" name="action" value="profile">
+      <div class="mb-3"><label class="form-label" for="full_name">Full name</label><input class="form-control" id="full_name" name="full_name" value="{{ form.full_name }}" required></div>
+      <div class="mb-3"><label class="form-label" for="email">Email</label><input type="email" class="form-control" id="email" name="email" value="{{ form.email }}" required></div>
+      <div class="mb-3"><label class="form-label" for="phone">Phone</label><input type="tel" class="form-control" id="phone" name="phone" value="{{ form.phone }}" required></div>
+      <div class="mb-3"><label class="form-label" for="cp1">Current password <span class="text-muted fw-normal">(only needed to change email or phone)</span></label><div class="pw-wrap"><input type="password" class="form-control" id="cp1" name="current_password" autocomplete="current-password"><button class="pw-toggle" type="button" data-toggle-password aria-label="Show or hide password"><i class="bi bi-eye"></i></button></div></div>
+      <button class="btn btn-wa" type="submit">Save details</button>
+    </form></div></div>
+  <div class="col-lg-6"><div class="card-soft mb-3"><div class="card-head"><h2>Change password</h2></div>
+    <form method="post" class="card-body-p" novalidate>{{ csrf() }}<input type="hidden" name="action" value="password">
+      <div class="mb-3">{{ pw_input('current_password', 'Current password', id='cp2') }}</div>
+      <div class="mb-3">{{ pw_input('new_password', 'New password', id='np', autocomplete='new-password') }}</div>
+      <div class="mb-3">{{ pw_input('confirm_password', 'Confirm new password', id='np2', autocomplete='new-password') }}</div>
+      <button class="btn btn-wa" type="submit">Change password</button></form></div>
+    <div class="card-soft border-danger-subtle"><div class="card-head"><h2 class="text-danger">Delete account</h2></div>
+    <form method="post" class="card-body-p" novalidate data-confirm="This permanently deletes your account, catalog, products and orders. Continue?">{{ csrf() }}<input type="hidden" name="action" value="delete">
+      <p class="small text-muted">This removes your catalog, products, photos and orders for good. It cannot be undone.</p>
+      <div class="mb-3">{{ pw_input('current_password', 'Your password', id='cp3') }}</div>
+      <div class="mb-3"><label class="form-label" for="confirm_text">Type DELETE to confirm</label><input class="form-control" id="confirm_text" name="confirm_text" autocomplete="off"></div>
+      <button class="btn btn-outline-danger" type="submit">Delete my account</button></form></div></div>
+</div>
+{% endblock %}

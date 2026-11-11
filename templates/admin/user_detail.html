@@ -1,0 +1,49 @@
+{% extends "layout_admin.html" %}
+{% from "_macros.html" import csrf, badge, stat %}
+{% block title %}{{ u.full_name }} - {{ PLATFORM_NAME }}{% endblock %}
+{% block page %}
+<div class="page-head"><div><a class="small text-decoration-none" href="{{ url_for('admin.users') }}"><i class="bi bi-arrow-left"></i> All sellers</a><h1 class="mt-1">{{ u.full_name }} {% if not u.is_active %}{{ badge('suspended') }}{% endif %}</h1><p class="sub">{{ u.email }} · +{{ u.phone }} · joined {{ u.created_at|fmt_date }}</p></div>
+  <div class="d-flex gap-2 flex-wrap">
+    {% if u.phone %}<a class="btn btn-whatsapp" href="https://wa.me/{{ u.phone }}" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> WhatsApp</a>{% endif %}
+    <form method="post" action="{{ url_for('admin.toggle_user', user_id=u.id) }}" data-confirm="{{ 'Suspend' if u.is_active else 'Reactivate' }} {{ u.full_name }}?">{{ csrf() }}<button class="btn {{ 'btn-outline-danger' if u.is_active else 'btn-wa' }}">{{ 'Suspend' if u.is_active else 'Reactivate' }}</button></form></div></div>
+
+{% if reset_link %}
+<div class="alert alert-success"><div class="fw-bold mb-1"><i class="bi bi-key"></i> Password reset link (valid for 1 hour, works once)</div>
+  <div class="link-box mb-2"><input class="form-control" id="rl" value="{{ reset_link }}" readonly><button class="btn btn-wa" type="button" data-copy-from="#rl" data-no-lock>Copy</button></div>
+  {% if reset_wa %}<a class="btn btn-sm btn-whatsapp" href="{{ reset_wa }}" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> Send to seller on WhatsApp</a>{% endif %}</div>
+{% endif %}
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-4"><div class="card-soft h-100"><div class="card-head"><h2>Account</h2></div><div class="card-body-p">
+    <dl class="row mb-3 small"><dt class="col-5">Email</dt><dd class="col-7">{{ u.email }} {% if u.email_verified %}<i class="bi bi-patch-check-fill text-success" title="Confirmed"></i>{% else %}<span class="badge text-bg-warning">unconfirmed</span>{% endif %}</dd>
+      <dt class="col-5">Last login</dt><dd class="col-7">{{ u.last_login_at|fmt_dt }}</dd></dl>
+    <div class="d-grid gap-2">
+      {% if not u.email_verified %}<form method="post" action="{{ url_for('admin.verify_user', user_id=u.id) }}">{{ csrf() }}<button class="btn btn-outline-secondary btn-sm w-100">Mark email as confirmed</button></form>{% endif %}
+      <form method="post" action="{{ url_for('admin.reset_link', user_id=u.id) }}">{{ csrf() }}<button class="btn btn-outline-wa btn-sm w-100"><i class="bi bi-key"></i> Generate password reset link</button></form>
+    </div></div></div></div>
+  {% if business %}
+  <div class="col-lg-8"><div class="card-soft h-100"><div class="card-head"><h2>{{ business.business_name }}</h2><a class="small" href="{{ url_for('public.shop', slug=business.slug) }}" target="_blank" rel="noopener">View catalog <i class="bi bi-box-arrow-up-right"></i></a></div>
+    <div class="card-body-p"><div class="row g-3 text-center">
+      <div class="col-4"><div class="fs-4 fw-bold">{{ stats.total }}</div><div class="small text-muted">products</div></div>
+      <div class="col-4"><div class="fs-4 fw-bold">{{ traffic.views }}</div><div class="small text-muted">views (30d)</div></div>
+      <div class="col-4"><div class="fs-4 fw-bold">{{ orders.total }}</div><div class="small text-muted">orders logged</div></div></div>
+      <hr><div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>Plan: {% if stats.is_premium %}{{ badge('premium') }} until <strong>{{ stats.expiry|fmt_date }}</strong>{% else %}{{ badge('free') }}{% endif %}<div class="small text-muted mt-1">M-Pesa account: CAT{{ business.id }} · /shop/{{ business.slug }}</div></div>
+        {% if stats.is_premium %}<form method="post" action="{{ url_for('admin.revoke', user_id=u.id) }}" data-confirm="Revoke Premium for {{ business.business_name }} now?">{{ csrf() }}<button class="btn btn-sm btn-outline-danger">Revoke Premium</button></form>{% endif %}</div>
+      <form method="post" action="{{ url_for('admin.grant', user_id=u.id) }}" class="row g-2 mt-2 align-items-end" data-confirm="Grant free Premium days to this seller?">{{ csrf() }}
+        <div class="col-4 col-md-3"><label class="form-label small" for="days">Grant days</label><input class="form-control form-control-sm" id="days" name="days" type="number" min="1" max="365" value="30"></div>
+        <div class="col-8 col-md-6"><label class="form-label small" for="reason">Reason</label><input class="form-control form-control-sm" id="reason" name="reason" maxlength="150" placeholder="e.g. paid cash, promo, compensation"></div>
+        <div class="col-12 col-md-3"><button class="btn btn-wa btn-sm w-100">Grant Premium</button></div></form>
+    </div></div></div>
+  {% else %}<div class="col-lg-8"><div class="card-soft h-100 empty"><i class="bi bi-shop"></i>This seller has not set up a business yet.</div></div>{% endif %}
+</div>
+
+{% if business %}
+<div class="row g-3">
+  <div class="col-lg-7"><div class="card-soft"><div class="card-head"><h2>Payments</h2></div>
+    {% if payments %}<div class="table-responsive"><table class="table table-clean"><thead><tr><th>Date</th><th>Code</th><th>Amount</th><th>Status</th></tr></thead><tbody>{% for p in payments %}<tr><td>{{ p.created_at|fmt_dt }}</td><td><code>{{ p.transaction_reference }}</code></td><td>{{ p.amount|kes }}</td><td>{{ badge(p.status) }}{% if p.note %}<div class="small text-muted">{{ p.note }}</div>{% endif %}</td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="empty py-4">No payments.</div>{% endif %}</div></div>
+  <div class="col-lg-5"><div class="card-soft"><div class="card-head"><h2>Premium history</h2></div>
+    {% if subs %}<div class="table-responsive"><table class="table table-clean"><thead><tr><th>From</th><th>To</th><th>Source</th></tr></thead><tbody>{% for s in subs %}<tr><td>{{ s.start_date|fmt_date }}</td><td>{{ s.expiry_date|fmt_date }}</td><td>{{ s.source }}</td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="empty py-4">Never subscribed.</div>{% endif %}</div></div>
+</div>
+{% endif %}
+{% endblock %}

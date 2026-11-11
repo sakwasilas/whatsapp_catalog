@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf, flashes %}
+{% block title %}Forgot password - {{ PLATFORM_NAME }}{% endblock %}
+{% block flashes %}{% endblock %}
+{% block content %}
+<div class="auth-wrap"><div class="card-soft auth-card">
+  <h1 class="h3 mb-1">Reset your password</h1><p class="text-muted">Enter your account email and we will send you a link to choose a new password.</p>
+  {{ flashes() }}
+  <form method="post" action="{{ url_for('auth.forgot_password') }}" novalidate>
+    {{ csrf() }}
+    <div class="mb-3"><label class="form-label" for="email">Email</label><input type="email" class="form-control" id="email" name="email" autocomplete="email" required autofocus></div>
+    <button class="btn btn-wa w-100 btn-lg" type="submit" data-busy="Sending...">Send reset link</button>
+  </form>
+  <div class="alert alert-light border small mt-3 mb-0"><i class="bi bi-info-circle"></i> No email access? {% if SUPPORT_WHATSAPP %}<a href="https://wa.me/{{ SUPPORT_WHATSAPP }}" rel="noopener">Message support on WhatsApp</a> and we will send you a reset link.{% else %}Contact support and we will send you a reset link.{% endif %}</div>
+  <p class="text-center mt-3 mb-0"><a href="{{ url_for('auth.login') }}">Back to log in</a></p>
+</div></div>
+{% endblock %}
+{% block footer %}{% endblock %}

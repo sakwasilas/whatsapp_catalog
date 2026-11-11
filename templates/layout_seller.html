@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf, flashes %}
+{% macro nav_item(endpoint, icon, label, match=None, count=0) %}
+  {% set active = request.endpoint in (match or [endpoint]) %}
+  <a class="side-link {{ 'active' if active }}" href="{{ url_for(endpoint) }}" {% if active %}aria-current="page"{% endif %}><i class="bi bi-{{ icon }}"></i>{{ label }}{% if count %}<span class="count">{{ count }}</span>{% endif %}</a>
+{% endmacro %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block flashes %}{% endblock %}
+{% block content %}
+<div class="shell">
+  <aside class="sidebar" aria-label="Main navigation">
+    <a class="brand" href="{{ url_for('seller.dashboard') }}"><span class="brand-mark"><i class="bi bi-whatsapp"></i></span>Duka<span class="text-wa">Yangu</span></a>
+    {{ nav_item('seller.dashboard','speedometer2','Dashboard') }}
+    {{ nav_item('seller.products','box-seam','Products',['seller.products','seller.add_product','seller.edit_product']) }}
+    {{ nav_item('seller.orders','receipt','Orders',['seller.orders','seller.new_order','seller.edit_order']) }}
+    {{ nav_item('seller.analytics','bar-chart-line','Analytics') }}
+    {{ nav_item('seller.business_profile','shop','My business') }}
+    {{ nav_item('seller.subscription','stars','Plan & billing') }}
+    {{ nav_item('seller.account','person-gear','Account') }}
+    <div class="side-foot">
+      {% if nav_business %}<a class="btn btn-soft w-100 mb-2" href="{{ url_for('public.shop', slug=nav_business.slug) }}" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> View my catalog</a>{% endif %}
+      <div class="small text-muted mb-2 px-1 text-truncate"><i class="bi bi-person-circle"></i> {{ current_user.full_name }}</div>
+      <form method="post" action="{{ url_for('auth.logout') }}">{{ csrf() }}<button class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-box-arrow-right"></i> Log out</button></form>
+    </div>
+  </aside>
+  <div class="shell-main">
+    <div class="topbar">
+      <a class="brand" href="{{ url_for('seller.dashboard') }}"><span class="brand-mark"><i class="bi bi-whatsapp"></i></span>Catalog<span class="text-wa">Maker</span></a>
+      <div class="d-flex gap-2">
+        {% if nav_business %}<a class="btn btn-soft btn-sm" href="{{ url_for('public.shop', slug=nav_business.slug) }}" target="_blank" rel="noopener"><i class="bi bi-eye"></i> Catalog</a>{% endif %}
+        <form method="post" action="{{ url_for('auth.logout') }}">{{ csrf() }}<button class="btn btn-outline-secondary btn-sm" aria-label="Log out"><i class="bi bi-box-arrow-right"></i></button></form>
+      </div>
+    </div>
+    <div class="page" id="page">
+      {{ flashes() }}
+      {% if MAIL_ENABLED and current_user and not current_user.email_verified %}
+      <div class="verify-banner d-flex flex-wrap align-items-center gap-2 mb-3">
+        <i class="bi bi-envelope-exclamation fs-5"></i>
+        <div class="flex-grow-1"><strong>Confirm your email.</strong> We sent a link to {{ current_user.email }}. You will need it to reset your password.</div>
+        <form method="post" action="{{ url_for('auth.resend_verification') }}">{{ csrf() }}<button class="btn btn-sm btn-outline-secondary">Resend email</button></form>
+      </div>
+      {% endif %}
+      {% block page %}{% endblock %}
+    </div>
+  </div>
+</div>
+<nav class="bottom-nav" aria-label="Main navigation">
+  <a href="{{ url_for('seller.dashboard') }}" class="{{ 'active' if request.endpoint == 'seller.dashboard' }}"><i class="bi bi-speedometer2"></i>Home</a>
+  <a href="{{ url_for('seller.products') }}" class="{{ 'active' if request.endpoint in ['seller.products','seller.add_product','seller.edit_product'] }}"><i class="bi bi-box-seam"></i>Products</a>
+  <a href="{{ url_for('seller.orders') }}" class="{{ 'active' if request.endpoint in ['seller.orders','seller.new_order','seller.edit_order'] }}"><i class="bi bi-receipt"></i>Orders</a>
+  <a href="{{ url_for('seller.analytics') }}" class="{{ 'active' if request.endpoint == 'seller.analytics' }}"><i class="bi bi-bar-chart-line"></i>Stats</a>
+  <a href="{{ url_for('seller.subscription') }}" class="{{ 'active' if request.endpoint == 'seller.subscription' }}"><i class="bi bi-stars"></i>Plan</a>
+  <a href="{{ url_for('seller.account') }}" class="{{ 'active' if request.endpoint in ['seller.account','seller.business_profile'] }}"><i class="bi bi-person-circle"></i>Me</a>
+</nav>
+{% endblock %}

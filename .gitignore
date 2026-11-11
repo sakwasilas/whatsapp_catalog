@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+venv/
+.env
+.secret_key
+dev.db
+uploads/products/*
+uploads/profiles/*
+!uploads/products/.gitkeep
+!uploads/profiles/.gitkeep

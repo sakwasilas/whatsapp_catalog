@@ -1,0 +1,8 @@
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectTitle" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><form class="modal-content" method="post" id="rejectForm" action="">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="modal-header"><h2 class="modal-title h5" id="rejectTitle">Reject payment</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+  <div class="modal-body"><p class="small text-muted" id="rejectLabel"></p><label class="form-label" for="rejectNote">Reason (the seller will see this)</label>
+    <select class="form-select mb-2" id="rejectPreset" aria-label="Common reasons"><option>Code not found in our M-Pesa statement.</option><option>Amount paid was less than KSh {{ PREMIUM_PRICE }}.</option><option>Wrong account number used.</option></select>
+    <input class="form-control" id="rejectNote" name="note" maxlength="250" placeholder="Or type your own reason"></div>
+  <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-danger" type="submit">Reject payment</button></div>
+</form></div></div>

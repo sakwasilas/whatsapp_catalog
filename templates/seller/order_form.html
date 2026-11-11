@@ -1,0 +1,23 @@
+{% extends "layout_seller.html" %}
+{% from "_macros.html" import csrf %}
+{% block title %}{{ 'Edit order' if order else 'Record order' }} - {{ PLATFORM_NAME }}{% endblock %}
+{% block page %}
+<div class="page-head"><div><h1>{{ 'Edit order #' ~ order.id if order else 'Record an order' }}</h1><p class="sub">Orders are private to you. Customers never see them.</p></div><a class="btn btn-outline-secondary" href="{{ url_for('seller.orders') }}">Back</a></div>
+<form method="post" novalidate class="card-soft card-body-p" style="max-width:760px">
+  {{ csrf() }}
+  <div class="row g-3">
+    <div class="col-md-6"><label class="form-label" for="orderProduct">Product</label>
+      <select class="form-select" id="orderProduct" name="product_id"><option value="">Other / not in catalog</option>
+        {% for p in items %}<option value="{{ p.id }}" data-price="{{ '{:f}'.format(p.price.normalize()) }}" data-name="{{ p.product_name }}" {{ 'selected' if form.product_id|string == p.id|string }}>{{ p.product_name }} ({{ p.price|kes }})</option>{% endfor %}</select></div>
+    <div class="col-md-6"><label class="form-label" for="orderName">Item name</label><input class="form-control" id="orderName" name="product_name" value="{{ form.product_name or '' }}" maxlength="150" placeholder="Filled in from the product"></div>
+    <div class="col-6 col-md-3"><label class="form-label" for="orderQty">Quantity</label><input class="form-control" id="orderQty" name="quantity" type="number" min="1" max="9999" value="{{ form.quantity or 1 }}"></div>
+    <div class="col-6 col-md-3"><label class="form-label" for="orderPrice">Price each (KSh)</label><input class="form-control" id="orderPrice" name="unit_price" inputmode="decimal" value="{{ form.unit_price or '' }}"></div>
+    <div class="col-md-6 d-flex align-items-end"><div class="w-100 p-2 rounded-3 bg-light border"><span class="text-muted small">Total</span> <strong class="fs-5 ms-2" id="orderTotal">KSh 0</strong></div></div>
+    <div class="col-md-6"><label class="form-label" for="customer_name">Customer name</label><input class="form-control" id="customer_name" name="customer_name" value="{{ form.customer_name or '' }}" maxlength="120"></div>
+    <div class="col-md-6"><label class="form-label" for="customer_phone">Customer phone / WhatsApp</label><input class="form-control" id="customer_phone" name="customer_phone" type="tel" value="{{ form.customer_phone or '' }}" placeholder="0712 345 678"></div>
+    <div class="col-md-4"><label class="form-label" for="status">Status</label><select class="form-select" id="status" name="status">{% for s in ['new','confirmed','delivered','cancelled'] %}<option value="{{ s }}" {{ 'selected' if (form.status or 'new') == s }}>{{ s|capitalize }}</option>{% endfor %}</select></div>
+    <div class="col-md-8"><label class="form-label" for="notes">Notes</label><input class="form-control" id="notes" name="notes" value="{{ form.notes or '' }}" maxlength="500" placeholder="Delivery area, size, colour..."></div>
+  </div>
+  <div class="mt-4 d-flex gap-2"><button class="btn btn-wa btn-lg" type="submit" data-busy="Saving...">Save order</button><a class="btn btn-outline-secondary btn-lg" href="{{ url_for('seller.orders') }}">Cancel</a></div>
+</form>
+{% endblock %}

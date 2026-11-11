@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf, pw_input, flashes %}
+{% block title %}Log in - {{ PLATFORM_NAME }}{% endblock %}
+{% block flashes %}{% endblock %}
+{% block content %}
+<div class="auth-wrap"><div class="card-soft auth-card">
+  <h1 class="h3 mb-1">Welcome back</h1><p class="text-muted">Log in to manage your catalog.</p>
+  {{ flashes() }}
+  <form method="post" action="{{ url_for('auth.login') }}" novalidate>
+    {{ csrf() }}<input type="hidden" name="next" value="{{ form.next or '' }}">
+    <div class="mb-3"><label class="form-label" for="identifier">Email or phone number</label>
+      <input class="form-control" id="identifier" name="identifier" value="{{ form.identifier or '' }}" autocomplete="username" required autofocus></div>
+    <div class="mb-2">{{ pw_input('password', 'Password') }}</div>
+    <div class="text-end mb-3"><a class="small" href="{{ url_for('auth.forgot_password') }}">Forgot password?</a></div>
+    <button class="btn btn-wa w-100 btn-lg" type="submit">Log in</button>
+  </form>
+  <p class="text-center text-muted mt-3 mb-0">New here? <a href="{{ url_for('auth.register') }}">Create a free account</a></p>
+</div></div>
+{% endblock %}
+{% block footer %}{% endblock %}

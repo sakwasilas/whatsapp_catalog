@@ -1,0 +1,41 @@
+{% extends "layout_seller.html" %}
+{% from "_macros.html" import csrf, badge %}
+{% block title %}Plan & billing - {{ PLATFORM_NAME }}{% endblock %}
+{% block page %}
+<div class="page-head"><div><h1>Plan &amp; billing</h1><p class="sub">Premium is KSh {{ PREMIUM_PRICE }} for {{ PREMIUM_DAYS }} days, paid by M-Pesa.</p></div></div>
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card-soft mb-3"><div class="card-head"><h2>Current plan</h2>{% if stats.is_premium %}<span class="badge badge-status st-premium">Premium</span>{% else %}<span class="badge badge-status st-free">Free</span>{% endif %}</div>
+      <div class="card-body-p">{% include "seller/_plan_box.html" %}</div></div>
+    <div class="card-soft"><div class="card-head"><h2>What you get with Premium</h2></div><div class="card-body-p"><ul class="price-list my-0">
+      <li><i class="bi bi-check-circle-fill"></i> Unlimited products (free plan: {{ FREE_LIMIT }})</li>
+      <li><i class="bi bi-check-circle-fill"></i> 30 and 90 day analytics and top products</li>
+      <li><i class="bi bi-check-circle-fill"></i> Your own catalog colour</li>
+      <li><i class="bi bi-check-circle-fill"></i> No platform branding on your catalog</li>
+      <li><i class="bi bi-check-circle-fill"></i> Export orders to CSV / Excel</li></ul></div></div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card-soft mb-3"><div class="card-head"><h2><i class="bi bi-phone"></i> {{ 'Renew' if stats.is_premium else 'Upgrade' }} with M-Pesa</h2></div><div class="card-body-p">
+      <ol class="ps-3">
+        <li class="mb-2">Open <strong>M-Pesa</strong> &rarr; Lipa na M-Pesa &rarr; <strong>Paybill</strong>.</li>
+        <li class="mb-2">Business number: <strong class="fs-5" id="pb">{{ mpesa.paybill }}</strong> <button class="btn btn-sm btn-soft ms-1" type="button" data-copy-from="#pb" data-no-lock><i class="bi bi-clipboard"></i> Copy</button><div class="small text-muted">{{ mpesa.name }}</div></li>
+        <li class="mb-2">Account number: <strong class="fs-5" id="acct">{{ mpesa.account }}</strong> <button class="btn btn-sm btn-soft ms-1" type="button" data-copy-from="#acct" data-no-lock><i class="bi bi-clipboard"></i> Copy</button></li>
+        <li class="mb-2">Amount: <strong>KSh {{ PREMIUM_PRICE }}</strong></li>
+        <li>Paste the <strong>10-character code</strong> from the confirmation SMS below.</li>
+      </ol>
+      {% if pending %}<div class="alert alert-info mb-0"><i class="bi bi-hourglass-split"></i> Your payment is waiting for verification. This usually takes a few hours.</div>
+      {% elif MAIL_ENABLED and not current_user.email_verified %}<div class="alert alert-warning mb-0">Please confirm your email first. Use the banner at the top of the page.</div>
+      {% else %}
+      <form method="post" action="{{ url_for('seller.submit_payment') }}" novalidate class="mt-3">{{ csrf() }}
+        <label class="form-label" for="transaction_reference">M-Pesa transaction code</label>
+        <div class="link-box"><input class="form-control text-uppercase" id="transaction_reference" name="transaction_reference" maxlength="14" placeholder="SHK7XY12AB" autocomplete="off" required><button class="btn btn-wa" type="submit" data-busy="Sending...">Submit</button></div>
+        <div class="form-text">Premium starts after we confirm the payment. Each code can be used once.</div></form>
+      {% endif %}
+    </div></div>
+    <div class="card-soft"><div class="card-head"><h2>Payment history</h2></div>
+      {% if payments %}<div class="table-responsive"><table class="table table-clean"><thead><tr><th>Date</th><th>Code</th><th>Amount</th><th>Status</th></tr></thead><tbody>
+        {% for p in payments %}<tr><td>{{ p.created_at|fmt_date }}</td><td><code>{{ p.transaction_reference }}</code></td><td>{{ p.amount|kes }}</td><td>{{ badge(p.status) }}{% if p.status == 'rejected' and p.note %}<div class="small text-danger">{{ p.note }}</div>{% endif %}</td></tr>{% endfor %}</tbody></table></div>
+      {% else %}<div class="empty py-4"><i class="bi bi-receipt"></i>No payments yet.</div>{% endif %}</div>
+  </div>
+</div>
+{% endblock %}

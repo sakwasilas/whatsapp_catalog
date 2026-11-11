@@ -1,0 +1,72 @@
+{% extends "layout_seller.html" %}
+{% from "_macros.html" import csrf, stat, bars, badge %}
+{% block title %}Dashboard - {{ PLATFORM_NAME }}{% endblock %}
+{% block page %}
+<div class="page-head">
+  <div><h1>Hi {{ current_user.full_name.split()[0] }} 👋</h1><p class="sub">Here is how {{ business.business_name }} is doing.</p></div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a class="btn btn-wa" href="{{ url_for('seller.add_product') }}"><i class="bi bi-plus-lg"></i> Add product</a>
+    <a class="btn btn-soft" href="{{ url_for('seller.new_order') }}"><i class="bi bi-receipt"></i> Record order</a>
+  </div>
+</div>
+
+{% if stats.expired_notice %}
+<div class="alert alert-warning d-flex flex-wrap align-items-center gap-2"><i class="bi bi-exclamation-triangle-fill"></i><div class="flex-grow-1">Your Premium has expired. {% if stats.hidden %}<strong>{{ stats.hidden }} product{{ '' if stats.hidden == 1 else 's' }}</strong> are hidden from your catalog.{% endif %}</div><a class="btn btn-sm btn-wa" href="{{ url_for('seller.subscription') }}">Renew for KSh {{ PREMIUM_PRICE }}</a></div>
+{% elif stats.is_premium and stats.days_left is not none and stats.days_left <= 5 %}
+<div class="alert alert-info d-flex flex-wrap align-items-center gap-2"><i class="bi bi-hourglass-split"></i><div class="flex-grow-1">Premium ends in <strong>{{ stats.days_left }} day{{ '' if stats.days_left == 1 else 's' }}</strong>. Renew now and the days are added on top.</div><a class="btn btn-sm btn-wa" href="{{ url_for('seller.subscription') }}">Renew</a></div>
+{% endif %}
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-lg-3">{{ stat('Visitors · ' ~ week.days ~ ' days', week.visitors, 'people', week.views ~ ' page views') }}</div>
+  <div class="col-6 col-lg-3">{{ stat('Order taps · ' ~ week.days ~ ' days', week.clicks, 'whatsapp', week.rate ~ '% of visitors') }}</div>
+  <div class="col-6 col-lg-3">{{ stat('Open orders', orders.open, 'receipt', orders.total ~ ' recorded in total') }}</div>
+  <div class="col-6 col-lg-3">{{ stat('Products', stats.total if stats.is_premium else stats.used ~ ' / ' ~ stats.limit, 'box-seam', 'Unlimited on Premium' if stats.is_premium else (stats.remaining ~ ' slots left')) }}</div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-7">
+    <div class="card-soft h-100">
+      <div class="card-head"><h2><i class="bi bi-link-45deg"></i> Your catalog link</h2><span class="badge badge-soft">Share this everywhere</span></div>
+      <div class="card-body-p">
+        <div class="link-box mb-3"><input class="form-control" id="catalogLink" value="{{ catalog_url }}" readonly aria-label="Catalog link"><button class="btn btn-wa" type="button" data-copy-from="#catalogLink"><i class="bi bi-clipboard"></i> Copy</button></div>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <a class="btn btn-whatsapp" href="{{ wa_share_url }}" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> Share on WhatsApp</a>
+          <a class="btn btn-soft" href="{{ catalog_url }}" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> Open</a>
+        </div>
+        <div class="d-flex gap-3 align-items-center">
+          <div class="qr-box"><img src="{{ url_for('seller.qr_code', fmt='svg') }}" alt="QR code for your catalog" width="132" height="132"></div>
+          <div><div class="fw-semibold">Print it. Stick it. Scan it.</div><p class="small text-muted mb-2">Put the QR code on your shop door, flyers and receipts.</p>
+            <a class="btn btn-sm btn-outline-wa" href="{{ url_for('seller.qr_code', fmt='png', download=1) }}"><i class="bi bi-download"></i> Download PNG</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    {% if not setup_complete %}
+    <div class="card-soft h-100"><div class="card-head"><h2><i class="bi bi-rocket-takeoff"></i> Get set up</h2><span class="small fw-bold text-wa">{{ progress }}%</span></div>
+      <div class="card-body-p"><div class="progress mb-3" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar" style="width:{{ progress }}%"></div></div>
+        <ul class="checklist">{% for label, done, link in checklist %}<li class="{{ 'done' if done }}"><span class="tick"><i class="bi bi-check"></i></span>{% if link and not done %}<a href="{{ link }}">{{ label }}</a>{% else %}<span>{{ label }}</span>{% endif %}</li>{% endfor %}</ul></div></div>
+    {% else %}
+    <div class="card-soft h-100"><div class="card-head"><h2><i class="bi bi-stars"></i> Your plan</h2>{% if stats.is_premium %}<span class="badge badge-status st-premium">Premium</span>{% else %}<span class="badge badge-status st-free">Free</span>{% endif %}</div>
+      <div class="card-body-p">{% include "seller/_plan_box.html" %}</div></div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-8"><div class="card-soft h-100">
+    <div class="card-head"><h2><i class="bi bi-bar-chart-line"></i> Last {{ week.days }} days</h2><div class="legend"><span><i style="background:var(--wa-tint2)"></i>Views</span><span><i style="background:var(--wa-dark)"></i>Order taps</span></div></div>
+    <div class="card-body-p">{% if week.views or week.clicks %}{{ bars(week.series, 'views', 'clicks', ' ') }}{% else %}<div class="empty py-4"><i class="bi bi-graph-up"></i>No visits yet. Share your link to get your first visitors.</div>{% endif %}
+      <div class="text-end mt-2"><a class="small" href="{{ url_for('seller.analytics') }}">Full analytics &rarr;</a></div></div></div></div>
+  {% if setup_complete %}<div class="col-lg-4"><div class="card-soft h-100"><div class="card-head"><h2>Orders</h2><a class="small" href="{{ url_for('seller.orders') }}">View all</a></div>
+    <div class="card-body-p">{% if recent_orders %}{% for o in recent_orders %}<div class="d-flex justify-content-between align-items-center py-2 {{ 'border-top' if not loop.first }}"><div class="min-w-0"><div class="fw-semibold text-truncate">{{ o.customer_name or 'Customer' }}</div><div class="small text-muted text-truncate">{{ o.quantity }} × {{ o.product_name }}</div></div><div class="text-end ms-2"><div class="fw-semibold">{{ o.total_amount|kes }}</div>{{ badge(o.status) }}</div></div>{% endfor %}{% else %}<div class="empty py-3"><i class="bi bi-receipt"></i>No orders yet.<div class="mt-2"><a class="btn btn-sm btn-wa" href="{{ url_for('seller.new_order') }}">Record an order</a></div></div>{% endif %}</div></div></div>
+  {% else %}<div class="col-lg-4"><div class="card-soft h-100"><div class="card-head"><h2>Your plan</h2>{% if stats.is_premium %}<span class="badge badge-status st-premium">Premium</span>{% else %}<span class="badge badge-status st-free">Free</span>{% endif %}</div><div class="card-body-p">{% include "seller/_plan_box.html" %}</div></div></div>{% endif %}
+</div>
+
+<div class="card-soft"><div class="card-head"><h2><i class="bi bi-box-seam"></i> Latest products</h2><a class="small" href="{{ url_for('seller.products') }}">Manage all</a></div>
+  {% if recent_products %}<div class="table-responsive"><table class="table table-clean align-middle"><tbody>
+    {% for p in recent_products %}<tr><td style="width:64px">{% if p.image %}<img class="thumb" src="{{ upload_url(p.image) }}" alt="">{% else %}<div class="thumb"><i class="bi bi-image"></i></div>{% endif %}</td><td><div class="fw-semibold">{{ p.product_name }}</div><div class="small text-muted">{{ p.category or 'No category' }}</div></td><td class="text-end fw-semibold">{{ p.price|kes }}</td><td class="text-end d-none d-sm-table-cell"><span class="badge badge-status {{ 'st-active' if p.is_available else 'st-cancelled' }}">{{ 'In stock' if p.is_available else 'Sold out' }}</span></td></tr>{% endfor %}
+  </tbody></table></div>
+  {% else %}<div class="empty"><i class="bi bi-box-seam"></i>Add your first product to bring your catalog to life.<div class="mt-3"><a class="btn btn-wa" href="{{ url_for('seller.add_product') }}"><i class="bi bi-plus-lg"></i> Add product</a></div></div>{% endif %}
+</div>
+{% endblock %}

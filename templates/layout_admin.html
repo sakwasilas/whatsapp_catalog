@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf, flashes %}
+{% macro nav_item(endpoint, icon, label, match=None, count=0) %}
+  {% set active = request.endpoint in (match or [endpoint]) %}
+  <a class="side-link {{ 'active' if active }}" href="{{ url_for(endpoint) }}" {% if active %}aria-current="page"{% endif %}><i class="bi bi-{{ icon }}"></i>{{ label }}{% if count %}<span class="count">{{ count }}</span>{% endif %}</a>
+{% endmacro %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block flashes %}{% endblock %}
+{% block content %}
+<div class="shell">
+  <aside class="sidebar" aria-label="Admin navigation">
+    <a class="brand" href="{{ url_for('admin.dashboard') }}"><span class="brand-mark"><i class="bi bi-shield-check"></i></span>Admin</a>
+    {{ nav_item('admin.dashboard','grid-1x2','Overview') }}
+    {{ nav_item('admin.users','people','Sellers',['admin.users','admin.user_detail','admin.reset_link']) }}
+    {{ nav_item('admin.payments','cash-coin','Payments',None,pending_count) }}
+    {{ nav_item('admin.activity','clock-history','Activity log') }}
+    <div class="side-foot">
+      <div class="small text-muted mb-2 px-1 text-truncate"><i class="bi bi-person-circle"></i> {{ current_user.full_name }}</div>
+      <form method="post" action="{{ url_for('auth.logout') }}">{{ csrf() }}<button class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-box-arrow-right"></i> Log out</button></form>
+    </div>
+  </aside>
+  <div class="shell-main">
+    <div class="topbar">
+      <a class="brand" href="{{ url_for('admin.dashboard') }}"><span class="brand-mark"><i class="bi bi-shield-check"></i></span>Admin</a>
+      <form method="post" action="{{ url_for('auth.logout') }}">{{ csrf() }}<button class="btn btn-outline-secondary btn-sm" aria-label="Log out"><i class="bi bi-box-arrow-right"></i></button></form>
+    </div>
+    <div class="page" id="page">{{ flashes() }}{% block page %}{% endblock %}</div>
+  </div>
+</div>
+<nav class="bottom-nav" aria-label="Admin navigation">
+  <a href="{{ url_for('admin.dashboard') }}" class="{{ 'active' if request.endpoint == 'admin.dashboard' }}"><i class="bi bi-grid-1x2"></i>Overview</a>
+  <a href="{{ url_for('admin.users') }}" class="{{ 'active' if request.endpoint in ['admin.users','admin.user_detail','admin.reset_link'] }}"><i class="bi bi-people"></i>Sellers</a>
+  <a href="{{ url_for('admin.payments') }}" class="{{ 'active' if request.endpoint == 'admin.payments' }}"><i class="bi bi-cash-coin"></i>Payments{% if pending_count %}<span class="dot">{{ pending_count }}</span>{% endif %}</a>
+  <a href="{{ url_for('admin.activity') }}" class="{{ 'active' if request.endpoint == 'admin.activity' }}"><i class="bi bi-clock-history"></i>Log</a>
+</nav>
+{% endblock %}
