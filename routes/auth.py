@@ -4,10 +4,13 @@ from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 import settings as S
+import hashlib
+import secrets
+from datetime import timedelta
 from connection import SessionLocal
 from core import (EMAIL_RE, client_ip, log_admin, normalize_phone, rate_clear, rate_count, rate_hit,
                   read_reset_token, safe_referrer, read_verify_token, safe_next, seller_required,
-                  send_reset_email, send_verification_email, utcnow)
+                  send_reset_email, send_verification_email, send_login_otp_email, utcnow)
 from models import User
 
 bp = Blueprint("auth", __name__)
@@ -79,9 +82,8 @@ def register():
             else:
                 rate_hit(db, f"reg:{client_ip()}")
                 send_verification_email(user)
-                start_session(user)
-                flash("Welcome! Your account is ready. Now set up your business.", "success")
-                return redirect(url_for("seller.business_profile"))
+                flash("Your account has been created. Please verify your email before logging in.", "success")
+                return redirect(url_for("auth.login"))
         for e in errors:
             flash(e, "danger")
     return render_template("auth/register.html", form=form)
@@ -109,18 +111,94 @@ def _do_login(template, role, identifier, password, form, bucket_prefix=""):
         if not user.is_active:
             flash("This account has been suspended. Please contact support.", "danger")
             return render_template(template, form=form), 200, None
+        if not user.email:
+            flash("This account needs an email address before email verification can be used. Contact support.", "danger")
+            return render_template(template, form=form), 200, None
+        if role == "seller" and not user.email_verified:
+            send_verification_email(user)
+            flash("Please verify your email first. We have sent you a confirmation link.", "warning")
+            return render_template(template, form=form), 200, None
         rate_clear(db, key_bucket)
-        user.last_login_at = utcnow()
-        if role == "admin":
-            log_admin(db, user.id, "admin_login", "Admin logged in.")
-        db.commit()
-        start_session(user)
-        return None, 200, user
+        code = f"{secrets.randbelow(1000000):06d}"
+        session.clear()
+        session["pending_login"] = {
+            "uid": user.id,
+            "code_hash": hashlib.sha256(code.encode()).hexdigest(),
+            "expires": (utcnow() + timedelta(minutes=5)).timestamp(),
+            "attempts": 0,
+            "sent_at": utcnow().timestamp(),
+            "role": role,
+        }
+        send_login_otp_email(user, code)
+        return None, 200, "otp_pending"
 
     rate_hit(db, key_bucket)
     rate_hit(db, ip_bucket)
     flash("Invalid admin credentials." if role == "admin" else "Incorrect email/phone or password.", "danger")
     return render_template(template, form=form), 200, None
+
+
+@bp.route("/verify-login-otp", methods=["GET", "POST"])
+def verify_login_otp():
+    pending = session.get("pending_login")
+    if not pending:
+        flash("Please sign in again to request a verification code.", "warning")
+        return redirect(url_for("auth.login"))
+    if request.method == "POST":
+        if utcnow().timestamp() > pending.get("expires", 0):
+            session.pop("pending_login", None)
+            flash("Your code has expired. Please sign in again.", "danger")
+            return redirect(url_for("auth.login"))
+        pending["attempts"] = pending.get("attempts", 0) + 1
+        code = request.form.get("code", "").strip()
+        if pending["attempts"] > 5:
+            session.pop("pending_login", None)
+            flash("Too many incorrect codes. Please sign in again.", "danger")
+            return redirect(url_for("auth.login"))
+        if not (len(code) == 6 and code.isdigit() and secrets.compare_digest(
+                hashlib.sha256(code.encode()).hexdigest(), pending.get("code_hash", ""))):
+            session["pending_login"] = pending
+            flash("Incorrect verification code. Please try again.", "danger")
+            return render_template("auth/otp.html"), 200
+        db = SessionLocal()
+        user = db.get(User, pending.get("uid"))
+        if not user or not user.is_active or user.role != pending.get("role"):
+            session.clear()
+            flash("This account cannot sign in. Please contact support.", "danger")
+            return redirect(url_for("auth.login"))
+        user.last_login_at = utcnow()
+        if user.role == "admin":
+            log_admin(db, user.id, "admin_login", "Admin logged in after email OTP verification.")
+        db.commit()
+        role = user.role
+        session.clear()
+        start_session(user)
+        flash("Login verified successfully.", "success")
+        return redirect(url_for("admin.dashboard" if role == "admin" else "seller.dashboard"))
+    return render_template("auth/otp.html")
+
+
+@bp.route("/resend-login-otp", methods=["POST"])
+def resend_login_otp():
+    pending = session.get("pending_login")
+    if not pending:
+        return redirect(url_for("auth.login"))
+    now = utcnow().timestamp()
+    if now - pending.get("sent_at", 0) < 60:
+        flash("Please wait 60 seconds before requesting another code.", "warning")
+        return redirect(url_for("auth.verify_login_otp"))
+    db = SessionLocal()
+    user = db.get(User, pending.get("uid"))
+    if not user or not user.is_active:
+        session.clear()
+        return redirect(url_for("auth.login"))
+    code = f"{secrets.randbelow(1000000):06d}"
+    pending.update(code_hash=hashlib.sha256(code.encode()).hexdigest(),
+                   expires=(utcnow() + timedelta(minutes=5)).timestamp(), attempts=0, sent_at=now)
+    session["pending_login"] = pending
+    send_login_otp_email(user, code)
+    flash("A new verification code has been sent to your email.", "success")
+    return redirect(url_for("auth.verify_login_otp"))
 
 
 @bp.route("/login", methods=["GET", "POST"])
@@ -132,9 +210,9 @@ def login():
         identifier = request.form.get("identifier", "").strip()
         form = {"identifier": identifier, "next": request.form.get("next", "")}
         body, code, user = _do_login("auth/login.html", "seller", identifier, request.form.get("password", ""), form)
-        if user:
-            flash("Logged in successfully.", "success")
-            return redirect(safe_next(url_for("seller.dashboard")))
+        if user == "otp_pending":
+            flash("We sent a sign-in code to your email.", "success")
+            return redirect(url_for("auth.verify_login_otp"))
         return body, code
     return render_template("auth/login.html", form=form)
 
@@ -149,8 +227,9 @@ def admin_login():
         form = {"email": email}
         body, code, user = _do_login("auth/admin_login.html", "admin", email, request.form.get("password", ""),
                                      form, bucket_prefix="admin:")
-        if user:
-            return redirect(url_for("admin.dashboard"))
+        if user == "otp_pending":
+            flash("We sent a sign-in code to your email.", "success")
+            return redirect(url_for("auth.verify_login_otp"))
         return body, code
     return render_template("auth/admin_login.html", form=form)
 

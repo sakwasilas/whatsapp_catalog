@@ -1,22 +1,42 @@
 """Public pages: landing, legal, public catalog, product pages, tracked WhatsApp links."""
 from flask import (Blueprint, Response, abort, g, redirect, render_template, request,
                    send_from_directory, url_for)
-from sqlalchemy import text
+from sqlalchemy import text, func, desc
 
 import settings as S
 from connection import SessionLocal
 from core import (Page, active_premium, kes, product_message, record_event,
                   visible_products, wa_link)
-from models import Business, Product, User
+from models import Business, Product, User, Order, ShopBanner
 
 bp = Blueprint("public", __name__)
 
 
 @bp.route("/")
 def index():
-    if g.user:
-        return render_template("public/index.html", logged_in=True)
-    return render_template("public/index.html", logged_in=False)
+    db = SessionLocal()
+    featured_products = (db.query(Product).join(Business, Product.business_id == Business.id)
+                         .join(User, Business.user_id == User.id)
+                         .filter(Product.is_featured.is_(True), Product.is_available.is_(True),
+                                 User.is_active.is_(True))
+                         .order_by(Product.updated_at.desc()).limit(8).all())
+    best_sellers = (db.query(Product, func.sum(Order.quantity).label("units_sold"))
+                    .join(Order, Order.product_id == Product.id)
+                    .join(Business, Product.business_id == Business.id)
+                    .join(User, Business.user_id == User.id)
+                    .filter(Order.status == "delivered", Product.is_available.is_(True),
+                            User.is_active.is_(True))
+                    .group_by(Product.id).order_by(desc("units_sold"), Product.id.desc())
+                    .limit(8).all())
+    popular_sellers = (db.query(Business, func.sum(Order.quantity).label("units_sold"))
+                       .join(Order, Order.business_id == Business.id)
+                       .join(User, Business.user_id == User.id)
+                       .filter(Order.status == "delivered", User.is_active.is_(True))
+                       .group_by(Business.id).order_by(desc("units_sold"), Business.id.desc())
+                       .limit(6).all())
+    return render_template("public/index.html", logged_in=bool(g.user),
+                           featured_products=featured_products, best_sellers=best_sellers,
+                           popular_sellers=popular_sellers)
 
 
 @bp.route("/terms")
@@ -122,7 +142,11 @@ def _apply_filters(products, search, category, in_stock_only, sort_key):
 def shop(slug):
     db, business, is_premium = _load_shop(slug)
 
-    # 1. All visible products (respects the free-plan limit)
+    # 1. Active seller banners (maximum five per shop)
+    shop_banners = (db.query(ShopBanner).filter_by(business_id=business.id, is_active=True)
+                    .order_by(ShopBanner.id.asc()).limit(5).all())
+
+    # 2. All visible products (respects the free-plan limit)
     all_products = visible_products(db, business, is_premium)
 
     # 2. Read filter args (all optional, all sanitised)
@@ -160,6 +184,7 @@ def shop(slug):
     return render_template(
         "public/catalog.html",
         business=business,
+        shop_banners=shop_banners,
         products=page_products,
         page=page,
         categories=categories,

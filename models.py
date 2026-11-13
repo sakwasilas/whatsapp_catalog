@@ -63,6 +63,21 @@ class Business(Base):
                           cascade="all, delete-orphan")
 
 
+class ShopBanner(Base):
+    """Seller-managed promotional banners shown on the seller's public shop."""
+    __tablename__ = "shop_banners"
+
+    id = Column(Integer, primary_key=True)
+    business_id = Column(Integer, ForeignKey("businesses.id", ondelete="CASCADE"), nullable=False, index=True)
+    image = Column(String(255), nullable=False)
+    heading = Column(String(120), nullable=False)
+    description = Column(String(300), nullable=True)
+    button_text = Column(String(40), nullable=True)
+    button_link = Column(String(500), nullable=True)
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+
 class Product(Base):
     __tablename__ = "products"
 

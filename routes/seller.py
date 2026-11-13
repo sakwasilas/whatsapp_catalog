@@ -22,7 +22,7 @@ from core import (EMAIL_RE, MPESA_CODE_RE, active_premium, analytics_summary, bu
                   business_required, delete_upload, kes, normalize_phone, order_summary, page_url,
                   paginate, parse_money, safe_referrer, save_image, send_verification_email,
                   seller_required, slugify, unique_slug, utcnow, wa_link)
-from models import Business, Category, Event, Order, Payment, Product, Subscription, User
+from models import Business, Category, Event, Order, Payment, Product, ShopBanner, Subscription, User
 
 bp = Blueprint("seller", __name__)
 bp.add_app_template_global(page_url, "page_url")
@@ -236,6 +236,67 @@ def get_own_product_or_404(db, business, product_id):
     if product is None:
         abort(404)
     return product
+
+
+@bp.route("/banners", methods=["GET", "POST"])
+@business_required
+def banners():
+    db, business = SessionLocal(), g.business
+    items = (db.query(ShopBanner).filter_by(business_id=business.id)
+             .order_by(ShopBanner.id.asc()).all())
+    if request.method == "POST":
+        if len(items) >= 5:
+            flash("You can add a maximum of 5 banners to your shop.", "warning")
+            return redirect(url_for("seller.banners"))
+        heading = (request.form.get("heading") or "").strip()[:120]
+        description = (request.form.get("description") or "").strip()[:300]
+        button_text = (request.form.get("button_text") or "").strip()[:40]
+        button_link = (request.form.get("button_link") or "").strip()[:500]
+        if not heading:
+            flash("Please enter a banner heading.", "danger")
+            return redirect(url_for("seller.banners"))
+        if button_link and not (button_link.startswith("https://") or button_link.startswith("http://") or button_link.startswith("/")):
+            flash("Button link must start with http://, https:// or /.", "danger")
+            return redirect(url_for("seller.banners"))
+        image_path, image_error = save_image(request.files.get("image"), "products")
+        if image_error or not image_path:
+            flash(image_error or "Please choose a banner image.", "danger")
+            return redirect(url_for("seller.banners"))
+        db.add(ShopBanner(business_id=business.id, image=image_path, heading=heading,
+                          description=description or None, button_text=button_text or None,
+                          button_link=button_link or None))
+        db.commit()
+        flash("Banner added to your shop.", "success")
+        return redirect(url_for("seller.banners"))
+    return render_template("seller/banners.html", business=business, banners=items)
+
+
+@bp.route("/banners/<int:banner_id>/delete", methods=["POST"])
+@business_required
+def delete_banner(banner_id):
+    db = SessionLocal()
+    banner = db.query(ShopBanner).filter_by(id=banner_id, business_id=g.business.id).first()
+    if banner is None:
+        abort(404)
+    image = banner.image
+    db.delete(banner)
+    db.commit()
+    delete_upload(image)
+    flash("Banner deleted.", "info")
+    return redirect(url_for("seller.banners"))
+
+
+@bp.route("/banners/<int:banner_id>/toggle", methods=["POST"])
+@business_required
+def toggle_banner(banner_id):
+    db = SessionLocal()
+    banner = db.query(ShopBanner).filter_by(id=banner_id, business_id=g.business.id).first()
+    if banner is None:
+        abort(404)
+    banner.is_active = not banner.is_active
+    db.commit()
+    flash("Banner visibility updated.", "success")
+    return redirect(url_for("seller.banners"))
 
 
 @bp.route("/products")

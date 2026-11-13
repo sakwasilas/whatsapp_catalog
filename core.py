@@ -346,6 +346,12 @@ def send_verification_email(user):
               f"(valid for 3 days):\n{link}\n\nIf you did not create an account, ignore this email.")
 
 
+def send_login_otp_email(user, code):
+    send_mail(user.email, f"Your Duka Yangu sign-in code",
+              f"Hi {user.full_name},\n\nYour Duka Yangu sign-in code is: {code}\n\n"
+              "It expires in 5 minutes. If you did not try to sign in, you can ignore this email.")
+
+
 def send_reset_email(user):
     link = url_for("auth.reset_password", token=make_reset_token(user), _external=True)
     send_mail(user.email, f"Reset your password - {S.PLATFORM_NAME}",

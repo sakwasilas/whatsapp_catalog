@@ -69,3 +69,46 @@ tests/          pytest suite (21 tests)
 - Have a lawyer review `templates/public/terms.html` and `privacy.html` (Kenya Data Protection Act).
 - Replace the manual M-Pesa check with Daraja STK Push / C2B callbacks when volume grows.
 - Analytics days use UTC; visitor counting uses a daily salted hash (no IPs stored).
+
+## Combined landing-page and email OTP update
+
+This update adds:
+- Landing-page best sellers ranked by total quantities in `delivered` orders (up to 8).
+- Landing-page featured products using the existing `products.is_featured` flag (up to 8).
+- Popular sellers ranked by quantities in delivered orders (up to 6).
+- Email verification before a newly registered seller can sign in.
+- Six-digit email OTP for admin and seller sign-in; codes expire after 5 minutes, allow up to 5 attempts, and can be resent after 60 seconds.
+
+### Gmail SMTP setup
+
+1. Enable 2-Step Verification on the Gmail account that will send Duka Yangu emails.
+2. Create a Google App Password from Google Account Security. Use the App Password, not your normal Gmail password.
+3. Set these environment variables locally in `.env` and in Render's Environment settings:
+
+```
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=youraddress@gmail.com
+MAIL_PASSWORD=your-16-character-app-password
+MAIL_USE_SSL=0
+MAIL_FROM=Duka Yangu <youraddress@gmail.com>
+```
+
+4. Keep `.env` out of GitHub. Never put the App Password in source code or share it in chat.
+5. Restart the application after changing environment variables.
+
+In development, copy `.env.example` to `.env` and add your own values. In production, configure the same variables in Render. Email sending will not work until SMTP is configured.
+
+### Notes
+
+- Best-seller ranking uses quantities from orders whose status is exactly `delivered`; it does not count new, confirmed, or cancelled orders.
+- Popular sellers are automatically ranked by delivered order quantities. This is not an admin-curated featured-seller toggle.
+- Featured products appear only when an administrator has set their existing `is_featured` field to true.
+- OTP challenge state is held in Flask's signed session cookie. Keep `SECRET_KEY` private and stable across all Render workers.
+- The package intentionally excludes `.env`, `.git`, virtual environments, `.secret_key`, and database CA/private credential files.
+
+## Shop banners (seller feature)
+
+Sellers can open **Shop banners** from the seller menu and add up to five promotional banners. Each banner supports an image, heading, description, optional button text and optional button link. Sellers can hide/show or delete a banner. Active banners appear on that seller's public shop page and rotate automatically.
+
+After deploying this version, run `python create.py` once so SQLAlchemy creates the new `shop_banners` table in the configured database. This does not delete or reset existing tables or records.

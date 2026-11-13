@@ -1,18 +1,10 @@
-__pycache__/
-*.pyc
-venv/
-.env
-.secret_key
-dev.db
-uploads/products/*
-uploads/profiles/*
-!uploads/products/.gitkeep
-!uploads/profiles/.gitkeep
 
-# Local environment and deployment secrets
-.env.*
-!.env.example
-ca.pem
+
+.env
+*.pem
+.secret_key
+__pycache__/
+*.py[cod]
 env/
+venv/
 .venv/
-.git/

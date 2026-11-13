@@ -7,6 +7,10 @@ import os
 import secrets
 from datetime import timedelta
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import click
 from flask import Flask, abort, g, render_template, request, session
 from sqlalchemy import func

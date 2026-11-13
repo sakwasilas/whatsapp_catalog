@@ -1050,6 +1050,16 @@
         </div>
     </section>
 
+    {% if shop_banners %}
+    <section class="container my-4">
+      <div id="shopBannerCarousel" class="carousel slide rounded-4 overflow-hidden shadow-sm" data-bs-ride="carousel" data-bs-interval="5000">
+        {% if shop_banners|length > 1 %}<div class="carousel-indicators">{% for banner in shop_banners %}<button type="button" data-bs-target="#shopBannerCarousel" data-bs-slide-to="{{ loop.index0 }}" class="{{ 'active' if loop.first }}" aria-label="Banner {{ loop.index }}"></button>{% endfor %}</div>{% endif %}
+        <div class="carousel-inner">{% for banner in shop_banners %}<div class="carousel-item {{ 'active' if loop.first }}"><div class="position-relative" style="min-height:260px;background:#183b36"><img src="{{ upload_url(banner.image) }}" alt="{{ banner.heading }}" class="w-100" style="height:320px;object-fit:cover;opacity:.58"><div class="position-absolute top-50 start-0 translate-middle-y text-white p-4 p-md-5" style="max-width:720px;text-shadow:0 1px 4px #000"><h2 class="display-6 fw-bold">{{ banner.heading }}</h2>{% if banner.description %}<p class="lead">{{ banner.description }}</p>{% endif %}{% if banner.button_text and banner.button_link %}<a class="btn btn-light fw-semibold" href="{{ banner.button_link }}">{{ banner.button_text }}</a>{% endif %}</div></div></div>{% endfor %}</div>
+        {% if shop_banners|length > 1 %}<button class="carousel-control-prev" type="button" data-bs-target="#shopBannerCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span><span class="visually-hidden">Previous</span></button><button class="carousel-control-next" type="button" data-bs-target="#shopBannerCarousel" data-bs-slide="next"><span class="carousel-control-next-icon"></span><span class="visually-hidden">Next</span></button>{% endif %}
+      </div>
+    </section>
+    {% endif %}
+
     <!-- MAIN CATALOG -->
     <main class="container catalog-content">
 

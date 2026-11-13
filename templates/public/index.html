@@ -6,6 +6,18 @@
 {% endblock %}
 {% block flashes %}{% endblock %}
 {% block content %}
+<section class="container py-3">
+  <div id="homePromoCarousel" class="carousel slide carousel-fade rounded-4 overflow-hidden shadow-sm" data-bs-ride="carousel" data-bs-interval="5000">
+    <div class="carousel-indicators"><button type="button" data-bs-target="#homePromoCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button><button type="button" data-bs-target="#homePromoCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button><button type="button" data-bs-target="#homePromoCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button></div>
+    <div class="carousel-inner">
+      <div class="carousel-item active"><div class="p-5 text-white" style="min-height:220px;background:linear-gradient(110deg,#075e54,#128c7e)"><span class="badge bg-light text-success mb-2">DUKA YANGU</span><h2 class="display-6 fw-bold">Take your business online</h2><p class="lead">Create your digital shop and reach more customers.</p><a class="btn btn-light text-success fw-semibold" href="{{ url_for('auth.register') }}">Create your shop</a></div></div>
+      <div class="carousel-item"><div class="p-5 text-white" style="min-height:220px;background:linear-gradient(110deg,#173b67,#2878a8)"><span class="badge bg-light text-primary mb-2">SHOP LOCAL</span><h2 class="display-6 fw-bold">Discover products from local shops</h2><p class="lead">Explore collections and connect directly with sellers.</p><a class="btn btn-light text-primary fw-semibold" href="#marketplace">Explore shops</a></div></div>
+      <div class="carousel-item"><div class="p-5 text-white" style="min-height:220px;background:linear-gradient(110deg,#78350f,#c26a22)"><span class="badge bg-light text-warning mb-2">SIMPLE. QUICK. MOBILE.</span><h2 class="display-6 fw-bold">Your products. One shareable link.</h2><p class="lead">Showcase your products and receive orders on WhatsApp.</p><a class="btn btn-light text-dark fw-semibold" href="{{ url_for('auth.register') }}">Get started</a></div></div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#homePromoCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span><span class="visually-hidden">Previous</span></button><button class="carousel-control-next" type="button" data-bs-target="#homePromoCarousel" data-bs-slide="next"><span class="carousel-control-next-icon"></span><span class="visually-hidden">Next</span></button>
+  </div>
+</section>
+
 <section class="hero">
   <div class="container py-5">
     <div class="row align-items-center g-5 py-lg-4">
@@ -42,6 +54,38 @@
     </div>
   </div>
 </section>
+
+{% if featured_products or best_sellers or popular_sellers %}
+<section class="section bg-light" id="marketplace">
+  <div class="container">
+    {% if best_sellers %}
+    <div class="d-flex justify-content-between align-items-end mb-4"><div><div class="eyebrow">Customer favourites</div><h2 class="section-title mb-0">Best-selling products</h2><p class="text-muted mb-0">Ranked by quantities in delivered orders.</p></div><a href="#how-it-works" class="btn btn-outline-wa">Explore marketplace</a></div>
+    <div class="row g-3 mb-5">
+      {% for product, units_sold in best_sellers %}
+      <div class="col-6 col-md-3"><div class="card-soft h-100 p-3">
+        {% if product.image %}<img src="{{ upload_url(product.image) }}" alt="{{ product.product_name }}" class="img-fluid rounded mb-2" style="width:100%;height:150px;object-fit:cover">{% endif %}
+        <div class="fw-semibold">{{ product.product_name }}</div><div class="text-muted small">{{ product.business.business_name }}</div><div class="fw-bold mt-1">{{ product.price|kes }}</div><span class="badge text-bg-success mt-2">{{ units_sold }} sold</span>
+        <a class="stretched-link" href="{{ url_for('public.shop', slug=product.business.slug) }}" aria-label="View {{ product.product_name }}"></a>
+      </div></div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if featured_products %}
+    <div class="mb-4"><div class="eyebrow">Picked for you</div><h2 class="section-title">Featured products</h2></div>
+    <div class="row g-3 mb-5">
+      {% for product in featured_products %}<div class="col-6 col-md-3"><div class="card-soft h-100 p-3">
+        {% if product.image %}<img src="{{ upload_url(product.image) }}" alt="{{ product.product_name }}" class="img-fluid rounded mb-2" style="width:100%;height:150px;object-fit:cover">{% endif %}
+        <div class="fw-semibold">{{ product.product_name }}</div><div class="text-muted small">{{ product.business.business_name }}</div><div class="fw-bold">{{ product.price|kes }}</div><a class="btn btn-sm btn-outline-wa mt-2" href="{{ url_for('public.shop', slug=product.business.slug) }}">View shop</a>
+      </div></div>{% endfor %}
+    </div>
+    {% endif %}
+    {% if popular_sellers %}
+    <div class="mb-4"><div class="eyebrow">Popular shops</div><h2 class="section-title">Popular sellers</h2></div>
+    <div class="row g-3">{% for business, units_sold in popular_sellers %}<div class="col-6 col-md-4"><a class="card-soft d-block p-3 text-decoration-none h-100" href="{{ url_for('public.shop', slug=business.slug) }}"><strong>{{ business.business_name }}</strong><div class="text-muted small">{{ business.location or 'Kenya' }}</div><span class="small text-success">{{ units_sold }} items sold</span></a></div>{% endfor %}</div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
 
 <section class="section" id="how-it-works">
   <div class="container">

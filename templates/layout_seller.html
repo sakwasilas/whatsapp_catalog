@@ -16,6 +16,7 @@
     {{ nav_item('seller.orders','receipt','Orders',['seller.orders','seller.new_order','seller.edit_order']) }}
     {{ nav_item('seller.analytics','bar-chart-line','Analytics') }}
     {{ nav_item('seller.business_profile','shop','My business') }}
+    {{ nav_item('seller.banners','images','Shop banners') }}
     {{ nav_item('seller.subscription','stars','Plan & billing') }}
     {{ nav_item('seller.account','person-gear','Account') }}
     <div class="side-foot">
@@ -36,6 +37,7 @@
     </div>
     <div class="mobile-menu-panel" id="sellerMobileMenu" hidden>
       <div class="mobile-menu-heading">Your workspace</div>
+      <a href="{{ url_for('seller.banners') }}" class="mobile-menu-link {{ 'active' if request.endpoint == 'seller.banners' }}"><i class="bi bi-images"></i><span>Shop banners</span></a>
       <a href="{{ url_for('seller.business_profile') }}" class="mobile-menu-link {{ 'active' if request.endpoint == 'seller.business_profile' }}"><i class="bi bi-shop"></i><span>My business</span></a>
       <a href="{{ url_for('seller.analytics') }}" class="mobile-menu-link {{ 'active' if request.endpoint == 'seller.analytics' }}"><i class="bi bi-bar-chart-line"></i><span>Analytics</span></a>
       <a href="{{ url_for('seller.subscription') }}" class="mobile-menu-link {{ 'active' if request.endpoint == 'seller.subscription' }}"><i class="bi bi-stars"></i><span>Plan &amp; billing</span></a>
@@ -62,6 +64,6 @@
   <a href="{{ url_for('seller.products') }}" class="{{ 'active' if request.endpoint in ['seller.products','seller.add_product','seller.edit_product'] }}"><i class="bi bi-box-seam"></i>Products</a>
   <a href="{{ url_for('seller.orders') }}" class="{{ 'active' if request.endpoint in ['seller.orders','seller.new_order','seller.edit_order'] }}"><i class="bi bi-receipt"></i>Orders</a>
   <a href="{{ url_for('seller.account') }}" class="{{ 'active' if request.endpoint == 'seller.account' }}"><i class="bi bi-person-circle"></i>Account</a>
-  <button type="button" class="bottom-more {{ 'active' if request.endpoint in ['seller.analytics','seller.business_profile','seller.subscription'] }}" data-mobile-menu-toggle aria-expanded="false" aria-controls="sellerMobileMenu"><i class="bi bi-grid"></i>More</button>
+  <button type="button" class="bottom-more {{ 'active' if request.endpoint in ['seller.analytics','seller.business_profile','seller.subscription','seller.banners'] }}" data-mobile-menu-toggle aria-expanded="false" aria-controls="sellerMobileMenu"><i class="bi bi-grid"></i>More</button>
 </nav>
 {% endblock %}
