@@ -62,3 +62,5 @@ THEME_COLORS = {
 }
 
 ORDER_STATUSES = ["new", "confirmed", "delivered", "cancelled"]
+
+PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "http://127.0.0.1:5000")

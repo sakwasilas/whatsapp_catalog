@@ -339,11 +339,23 @@ def send_mail(to, subject, body):
         log.warning("[mail not configured] To: %s | %s\n%s", to, subject, body)
 
 
+
 def send_verification_email(user):
-    link = url_for("auth.verify_email", token=make_verify_token(user), _external=True)
-    send_mail(user.email, f"Confirm your email - {S.PLATFORM_NAME}",
-              f"Hi {user.full_name},\n\nConfirm your email address by opening this link "
-              f"(valid for 3 days):\n{link}\n\nIf you did not create an account, ignore this email.")
+    token = make_verify_token(user)
+
+    base_url = S.PUBLIC_BASE_URL.rstrip("/")
+
+    link = f"{base_url}{url_for('auth.verify_email', token=token)}"
+
+    send_mail(
+        user.email,
+        f"Confirm your email - {S.PLATFORM_NAME}",
+        f"Hi {user.full_name},\n\n"
+        f"Confirm your email address by opening this link "
+        f"(valid for 3 days):\n{link}\n\n"
+        f"If you did not create an account, ignore this email."
+    )
+
 
 
 def send_login_otp_email(user, code):
