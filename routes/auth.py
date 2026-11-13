@@ -297,7 +297,11 @@ def verify_email(token):
         user.email_verified = True
         db.commit()
     flash("Email confirmed. Thank you!", "success")
-    return redirect(url_for("seller.dashboard") if g.user else url_for("auth.login"))
+
+if g.user and g.user.id == user.id and g.user.role == "seller":
+    return redirect(url_for("seller.dashboard"))
+
+return redirect(url_for("public.index"))
 
 
 @bp.route("/resend-verification", methods=["POST"])
